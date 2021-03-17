@@ -1,0 +1,3 @@
+/mnt/c/Users/pmaciel/Experiments/CodeExperiments/Samples/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/pmaciel/Experiments/CodeExperiments/Samples/CMakeFiles/sample.dir
+/mnt/c/Users/pmaciel/Experiments/CodeExperiments/Samples/CMakeFiles/edit_cache.dir
