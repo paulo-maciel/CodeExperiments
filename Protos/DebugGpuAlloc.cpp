@@ -81,7 +81,13 @@ void DebugGpuAlloc::glBindTexture(	GLenum target, GLuint texture) {
 }
 
 void DebugGpuAlloc::glDeleteTextures( GLsizei n, const GLuint * textures) {
+
   // TODO: Remove textures/remove allocated space.
+  for(auto i = 0; i < n; ++i) {
+    auto hash = getHash(GL_TEXTURE_2D, textures[i]);
+    auto& idMap = allocMap_.at(getpid());
+    idMap.erase(hash);
+  }
 
   ::glDeleteTextures(n, textures);
 }

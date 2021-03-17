@@ -22,10 +22,14 @@ int main()
   gpuAlloc.glGenTextures(3, id);
 
   gpuAlloc.glTextureStorage2D(id[0], 3, GL_RGBA, 10, 10);
+  gpuAlloc.glTextureStorage2D(id[1], 1, GL_RGB, 10, 10);
+  gpuAlloc.glTextureStorage2D(id[2], 1, GL_RG8, 10, 10);
 
-  cout << "Allocated: " << gpuAlloc.getAllocated(getpid()) << endl;
+  cout << "Allocated before: " << gpuAlloc.getAllocated(getpid()) << endl;
 
-  //cout << "Size of the 3rd id: " << id[2] << " is: " << gpuAlloc.getSize(getpid(), GL_TEXTURE_2D, id[2]) << endl;
+  gpuAlloc.glDeleteTextures(3, id);
+
+  cout << "Allocated after: " << gpuAlloc.getAllocated(getpid()) << endl;
 
   return 1;
 }
