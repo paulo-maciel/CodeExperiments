@@ -55,14 +55,19 @@ class DebugGpuAlloc {
   public:
     static DebugGpuAlloc& Get();
 
-    void glGenTextures(	GLsizei n, GLuint* textures);
-
-    void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height);
-
-    void glBindTexture(	GLenum target, GLuint texture);
+    // Textures API
+    void glGenTextures(	GLsizei n, GLuint* texIds);
+    void glBindTexture(	GLenum target, GLuint id);
+    void glTextureStorage2D(GLuint id, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height);
     void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height);
-
     void glDeleteTextures( GLsizei n, const GLuint * textures);
+
+    // Buffers API
+    void glGenBuffers(GLsizei n, GLuint* bufferIds);
+    void glBindBuffer(GLenum target, GLuint id);
+    void glBufferData(GLenum target, GLsizei size, const void* data, GLenum usage);
+    void glBufferStorage(	GLenum target, GLsizeiptr size, const void * data, GLbitfield flags);
+    void glDeleteBuffers(GLsizei n, GLuint* bufIds);
 
   public:
     // TODO: Make private.
@@ -73,15 +78,20 @@ class DebugGpuAlloc {
     DebugGpuAlloc();
     ~DebugGpuAlloc();
 
-    size_t computeSize(GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height);
+    size_t computeTexSize(GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height);
     uint32_t getHash(GLenum type_, int id_) const;
 
     // Bound texture.
     GLuint boundTexture_;
-    GLenum boundTarget_;
+    GLenum boundTexTarget_;
+
+    // Bound buffer.
+    GLuint boundBuffer_;
+    GLenum boundBufTarget_;
 
     std::unordered_map<pid_t, std::unordered_map<uint32_t, GpuData>> allocMap_;
 
     std::unordered_map<pid_t, std::deque<GLuint>> textureIDs_;
+    std::unordered_map<pid_t, std::deque<GLuint>> bufferIDs_;
 };
 
