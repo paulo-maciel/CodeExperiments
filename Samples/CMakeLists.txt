@@ -5,4 +5,4 @@ set(CMAKE_CXX_STANDARD 14)
 
 add_executable(sample sample.cpp)
 
-include_directories(./)
+include_directories(~/ml2/nova/external/glm/)
