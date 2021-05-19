@@ -47,6 +47,30 @@ void RevertList(LinkNode*& head) {
   head = curr;
 }
 
+LinkNode* removeNthFromEnd(LinkNode*& head, int n) {
+    RevertList(head);
+    printList(head);
+    auto* node = head;
+    LinkNode* toDelete;
+    if (n == 1) {
+        toDelete = head;
+        head = head->next;
+    } else {
+        for(int i = 0; i < n - 2; ++i) {
+            node = node->next;
+        }
+
+        toDelete = node->next;
+        node->next = toDelete->next;
+    }
+    printList(head);
+    
+    RevertList(head);
+    
+    printList(head);
+    return toDelete;
+}
+
 int main()
 {
   LinkNode* head = new LinkNode(1);
