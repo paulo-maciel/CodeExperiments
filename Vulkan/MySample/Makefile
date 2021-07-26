@@ -21,4 +21,4 @@ test: myvulkan
 	./myvulkan
 
 clean:
-	rm -f myvulkan
+	rm -f myvulkan  *.o
