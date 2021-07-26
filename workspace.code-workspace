@@ -3,5 +3,10 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true,
+		"telemetry.enableCrashReporter": false,
+		"editor.tabSize": 2
+	}
 }

@@ -1,0 +1,103 @@
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
+#include <iostream>
+#include <functional>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <unordered_map>
+#include <set>
+#include <queue>
+#include <deque>
+#include <list>
+#include <stack>
+
+using namespace std;
+
+class Graph {
+    public:
+        
+    Graph(int n) 
+    : numNodes(n) {
+        adj = new list<int>[n];
+        visited = new bool[n];
+        for(int i = 0; i < n; ++i) {
+            visited[i] = false;
+        }
+    }
+
+    void addEdge(int p, int c) {
+        adj[p].push_back(c);
+    }
+
+    void Build(vector<vector<int>>& prerequisites) {
+        for(auto req : prerequisites) {
+            addEdge(req[1], req[0]);
+        }
+    }
+
+    void DFS(int node, stack<int>& s) {
+        visited[node] = true;
+        for(auto n : adj[node]) {
+            if (!visited[n]) {
+                DFS(n, s);
+            } 
+        }
+        s.push(node);
+    }
+
+    private:
+        int numNodes;
+        list<int> *adj;
+        bool *visited;
+    };
+    vector<int> findOrder(int numCourses, vector<vector<int>>& prerequisites) {
+        vector<int> order;
+        Graph g(numCourses);
+        g.Build(prerequisites);
+
+        stack<int> s;
+        for(int i = 0; i < numCourses; ++i) {
+            g.DFS(i, s);
+        }
+
+        while(!s.empty()) {
+            order.push_back(s.top());
+            s.pop();
+        }
+        return order;
+    }
+
+
+void G::topoSort() {
+   stack<int> Stack;
+   bool *visited = new bool[n];
+
+   //Mark all the vertices which are not visited.
+   for (int i = 0; i < n; i++)
+      visited[i] = false;
+
+    for (int i = 0; i < n; i++)
+        if (visited[i] == false)
+        //Call the function topologicalSort().
+        topologicalSort(i, visited, Stack);
+
+    while (Stack.empty() == false) {
+        cout << Stack.top() << " "; //print the element
+        Stack.pop();
+    }
+}
+
+
+int main() {
+    vector<vector<int>> reqs = {{1,0},{2,0},{3,1},{3,2},{2,4}};
+    auto vec = findOrder(5, reqs);
+
+    for (int i = 0; i < 5; ++i) {
+        cout << " " << vec[i];
+    }
+    cout << endl;
+
+    return 1;
+}
