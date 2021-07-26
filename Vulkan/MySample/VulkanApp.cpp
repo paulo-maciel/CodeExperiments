@@ -13,6 +13,8 @@
 #include <cstring>
 
 
+using namespace std;
+
 #define APP_SHORT_NAME "VulkanApp"
 
 VulkanApp::VulkanApp()
@@ -26,14 +28,14 @@ VulkanApp::VulkanApp()
 }
 
 VulkanApp::~VulkanApp() {
-    std::cout << "Exiting the app" << std::endl;
+    cout << "Exiting the app" << endl;
 }
 
 void VulkanApp::run() {
   init();
   update();
   deInit();
-  std::cout << "Finished run" << std::endl;
+  cout << "Finished run" << endl;
 }
 
 void VulkanApp::init() {
@@ -45,11 +47,13 @@ void VulkanApp::initVulkan() {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
-    std::cout << extensionCount << " extensions supported as follows:\n";
-    std::vector<VkExtensionProperties> extensions(extensionCount);
+    cout << extensionCount << " extensions supported as follows:\n";
+    vector<VkExtensionProperties> extensions(extensionCount);
+    cout << "Names: ";
     for (const auto& extension : extensions) {
-        std::cout <<  "Name: " << extension.extensionName << '\n';
+        cout << extension.extensionName << " ";
     }
+    cout << endl;
 
     // initialize the VkApplicationInfo structure
     VkApplicationInfo app_info = {};
@@ -79,22 +83,25 @@ void VulkanApp::initVulkan() {
     inst_info.enabledExtensionCount = glfwExtensionCount;
     inst_info.ppEnabledExtensionNames = glfwExtensions;
 
-    std::cout << "glfwExtensions count: " << glfwExtensionCount << std::endl;
+    cout << "glfwExtensions count: " << glfwExtensionCount << endl;
     for(int i = 0; i < glfwExtensionCount; ++i) {
-        std::cout << "Extension: " << glfwExtensions[i] << std::endl;
+        cout << "Extension: " << glfwExtensions[i] << endl;
     }
 
     VkResult res = vkCreateInstance(&inst_info, NULL, &vkInstance_);
     if (res == VK_ERROR_INCOMPATIBLE_DRIVER) {
-        std::cout << "cannot find a compatible Vulkan ICD\n";
-        throw std::runtime_error("failed to create instance!");
+        cout << "cannot find a compatible Vulkan ICD\n";
+        throw runtime_error("failed to create instance!");
         exit(-1);
     } else if (res) {
-        std::cout << "unknown error\n";
+        cout << "unknown error\n";
         exit(-1);
     }
 
-    std::cout << "Vulkan instance created." << std::endl;
+    // Check for the support of validation layers.
+    checkValidationLayerSupport();
+
+    cout << "Vulkan instance created." << endl;
 }
 
 void VulkanApp::update() {
@@ -115,15 +122,15 @@ void VulkanApp::initGlfw() {
 }
 
 void VulkanApp::deInitGlfw() {
-    std::cout << "Destroying window: " << window_ << std::endl;
+    cout << "Destroying window: " << window_ << endl;
     glfwDestroyWindow(window_);
     glfwTerminate();
-    std::cout << "Finished deInitGlfw" << std::endl;
+    cout << "Finished deInitGlfw" << endl;
 }
 
 void VulkanApp::deInitVulkan() {
     vkDestroyInstance(vkInstance_, NULL);
-    std::cout << "deInitVulkan " << std::endl;
+    cout << "deInitVulkan " << endl;
 }
 
 bool VulkanApp::checkValidationLayerSupport() {
@@ -131,22 +138,26 @@ bool VulkanApp::checkValidationLayerSupport() {
 
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-    std::vector<VkLayerProperties> availableLayers(layerCount);
+    cout << "Checking for " << layerCount << " Validation layers." << endl;
+
+    vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
     bool layerFound = false;
     char* layerName;
     for (layerName : validationLayers_) {
         for (const auto& layerProperties : availableLayers) {
+            cout << layerProperties.layerName << ", ";
             if (strncmp(layerName, layerProperties.layerName, strlen(layerName)) == 0) {
                 layerFound |= true;
-                std::cout << "Found layer: " << layerName << std::endl;
+                cout << "Found layer: " << layerName << endl;
             }
         }
     }
+    cout << endl;
 
     if (!layerFound) {
-        std::cout << "Did not find layer: " << std::endl;
+        cout << "Did not find layer: " << endl;
     }
     return layerFound;
 }
