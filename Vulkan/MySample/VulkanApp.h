@@ -32,15 +32,23 @@ private:
   void cleanup();
   void deInitVulkan();
   void deInitGlfw();
+  std::vector<const char*> getRequiredExtensions();
+  void initDebugMessenger();
+  void deInitDebugMessenger();
+  VkResult createDebugUtilsMessengerEXT(VkInstance instance, 
+                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, 
+                                      const VkAllocationCallbacks* pAllocator, 
+                                      VkDebugUtilsMessengerEXT* pDebugMessenger);
 
 private:
 #if NDEBUG
-  const bool enableValidationLayers = false;
+  const bool enableValidationLayers_ = false;
 #else
-  const bool enableValidationLayers = true;
+  const bool enableValidationLayers_ = true;
   const std::vector<const char*> validationLayers_;
 #endif
 
   GLFWwindow* window_;
   VkInstance vkInstance_;
+  VkDebugUtilsMessengerEXT debugMessenger_;
 };
