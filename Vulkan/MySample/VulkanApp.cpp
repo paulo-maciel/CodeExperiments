@@ -113,6 +113,9 @@ void VulkanApp::initVulkan() {
     // Setup debug messenger callback.
     initDebugMessenger();
 
+    // Select a physical device.
+    deviceSelector_.select(vkInstance_);
+
     cout << "Vulkan instance created." << endl;
 }
 

@@ -1,5 +1,7 @@
 #include <vulkan/vulkan.h>
 
+#include <DeviceSelector.h>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -51,4 +53,5 @@ private:
   GLFWwindow* window_;
   VkInstance vkInstance_;
   VkDebugUtilsMessengerEXT debugMessenger_;
+  DeviceSelector deviceSelector_;
 };

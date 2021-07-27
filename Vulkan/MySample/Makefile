@@ -10,8 +10,10 @@ LDFLAGS += -lpthread -lm -g -O0
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-myvulkan: MySample.o VulkanApp.o
-	g++ $(CFLAGS) -o myvulkan MySample.o VulkanApp.o $(LDFLAGS)
+OBJS = MySample.o VulkanApp.o DeviceSelector.o
+
+myvulkan: $(OBJS)
+	g++ $(CFLAGS) -o myvulkan $(OBJS) $(LDFLAGS)
 
 .PHONY: test clean
 
