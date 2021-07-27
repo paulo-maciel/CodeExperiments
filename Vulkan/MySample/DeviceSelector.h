@@ -1,5 +1,7 @@
 #include <vulkan/vulkan.h>
 
+#include <QueueSelector.h>
+
 #include <iostream>
 #include <vector>
 
@@ -19,5 +21,6 @@ public:
 private:
  
   VkPhysicalDevice physicalDevice_;
+  QueueSelector queueSelector_;
 
 };

@@ -165,7 +165,7 @@ bool VulkanApp::checkValidationLayerSupport() {
 
     bool layerFound = false;
     char* layerName;
-    for (layerName : validationLayers_) {
+    for (auto layerName : validationLayers_) {
         for (const auto& layerProperties : availableLayers) {
             cout << layerProperties.layerName << ", ";
             if (strncmp(layerName, layerProperties.layerName, strlen(layerName)) == 0) {

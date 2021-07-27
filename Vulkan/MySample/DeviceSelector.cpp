@@ -33,6 +33,12 @@ void DeviceSelector::select(const VkInstance& vkInstance) {
     cout << "Got " << candidates.size() << " candidate devices to choose from." << endl;
     if (candidates.rbegin()->first > 0) {
         physicalDevice_ = candidates.rbegin()->second;
+
+        // Check if the device supports a GraphicsQueue
+        auto familyIndex = queueSelector_.findFamily(physicalDevice_);
+        if (!familyIndex.hasValue()) {
+            throw std::runtime_error("Selected device does not support a graphics queue!");
+        }
     } else {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
