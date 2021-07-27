@@ -13,10 +13,10 @@ To run some code:
 
 Push files using:
 
-git push -vf origin HEAD:refs/for/master
+git push -vf origin HEAD:refs/heads/master
 Pushing to https://github.com/paulo-maciel/CodeExperiments.git
 Username for 'https://github.com': paulo_maciel@yahoo.com
-Password for 'https://paulo_maciel@yahoo.com@github.com
+pwd for 'https://paulo_maciel@yahoo.com@github.com
 
-Password: 3...!
+pwd: 3...!
 

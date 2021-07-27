@@ -12,16 +12,24 @@
 #include <iostream>
 #include <cstring>
 
-
 using namespace std;
 
 #define APP_SHORT_NAME "VulkanApp"
 
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+                                            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                            VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                            void* pUserData) {
+    cout << "validation layer callback message: " << pCallbackData->pMessage << endl;
+    return VK_FALSE;
+}
+
 VulkanApp::VulkanApp()
 #if NDEBUG
-  : enableValidationLayers(false)
+  : enableValidationLayers_(false)
 #else
-  : enableValidationLayers(true)
+  : enableValidationLayers_(true)
   , validationLayers_{"VK_LAYER_KHRONOS_validation"}
 #endif 
 {
@@ -44,6 +52,7 @@ void VulkanApp::init() {
 }
 
 void VulkanApp::initVulkan() {
+#if 0
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
@@ -54,6 +63,7 @@ void VulkanApp::initVulkan() {
         cout << extension.extensionName << " ";
     }
     cout << endl;
+#endif
 
     // initialize the VkApplicationInfo structure
     VkApplicationInfo app_info = {};
@@ -71,25 +81,27 @@ void VulkanApp::initVulkan() {
     inst_info.pNext = NULL;
     inst_info.flags = 0;
     inst_info.pApplicationInfo = &app_info;
-    inst_info.enabledExtensionCount = 0;
-    inst_info.ppEnabledExtensionNames = NULL;
-    inst_info.enabledLayerCount = 0;
-    inst_info.ppEnabledLayerNames = NULL;
 
-    // Enable the vulkan extensions via glfw
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions;
-    glfwExtensions =  glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    inst_info.enabledExtensionCount = glfwExtensionCount;
-    inst_info.ppEnabledExtensionNames = glfwExtensions;
-
-    cout << "glfwExtensions count: " << glfwExtensionCount << endl;
-    for(int i = 0; i < glfwExtensionCount; ++i) {
-        cout << "Extension: " << glfwExtensions[i] << endl;
+    // Check for the support of validation layers.
+    if (enableValidationLayers_) {
+        if (checkValidationLayerSupport()) {
+            inst_info.enabledLayerCount = static_cast<uint32_t>(validationLayers_.size());
+            inst_info.ppEnabledLayerNames = validationLayers_.data();
+            cout << "Validation layers are available!" << endl;
+        } else {
+            throw std::runtime_error("validation layers requested, but not available!");
+        }
+    } else {
+        inst_info.enabledLayerCount = 0;
     }
 
+    // Get the required list of extensions based on whether validation layers are enabled or not:
+    auto extensions = getRequiredExtensions();
+    inst_info.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    inst_info.ppEnabledExtensionNames = extensions.data();
+
     VkResult res = vkCreateInstance(&inst_info, NULL, &vkInstance_);
-    if (res == VK_ERROR_INCOMPATIBLE_DRIVER) {
+    if (res == VK_ERROR_INCOMPATIBLE_DRIVER || res == VK_ERROR_LAYER_NOT_PRESENT) {
         cout << "cannot find a compatible Vulkan ICD\n";
         throw runtime_error("failed to create instance!");
         exit(-1);
@@ -98,8 +110,8 @@ void VulkanApp::initVulkan() {
         exit(-1);
     }
 
-    // Check for the support of validation layers.
-    checkValidationLayerSupport();
+    // Setup debug messenger callback.
+    initDebugMessenger();
 
     cout << "Vulkan instance created." << endl;
 }
@@ -129,6 +141,11 @@ void VulkanApp::deInitGlfw() {
 }
 
 void VulkanApp::deInitVulkan() {
+
+    if (enableValidationLayers_) {
+        deInitDebugMessenger();
+    }
+
     vkDestroyInstance(vkInstance_, NULL);
     cout << "deInitVulkan " << endl;
 }
@@ -160,4 +177,55 @@ bool VulkanApp::checkValidationLayerSupport() {
         cout << "Did not find layer: " << endl;
     }
     return layerFound;
+}
+
+std::vector<const char*> VulkanApp::getRequiredExtensions() {
+
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+    if (enableValidationLayers_) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+    return extensions;
+}
+
+void VulkanApp::initDebugMessenger() {
+    if (!enableValidationLayers_) {
+        return;
+    }
+
+    VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | 
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+    createInfo.pUserData = nullptr; // Optional
+
+    if (createDebugUtilsMessengerEXT(vkInstance_, &createInfo, nullptr, &debugMessenger_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to set up debug messenger!");
+    }
+}
+
+void VulkanApp::deInitDebugMessenger() {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(vkInstance_, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(vkInstance_, debugMessenger_, nullptr);
+    }
+}
+
+VkResult VulkanApp::createDebugUtilsMessengerEXT(VkInstance instance, 
+                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, 
+                                      const VkAllocationCallbacks* pAllocator, 
+                                      VkDebugUtilsMessengerEXT* pDebugMessenger) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, 
+                                                                          "vkCreateDebugUtilsMessengerEXT"); 
+    return func != nullptr ? func(instance, pCreateInfo, pAllocator, pDebugMessenger) : VK_ERROR_EXTENSION_NOT_PRESENT;
 }
