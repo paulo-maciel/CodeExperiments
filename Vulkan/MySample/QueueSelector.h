@@ -15,9 +15,14 @@ public:
     uint32_t value();
   };
 
-  QueueFamilyIndex findFamily(const VkPhysicalDevice& device);
+  const VkDeviceQueueCreateInfo& getQueueCreateInfo(VkPhysicalDevice physicalDevice);
+  bool hasValidFamily(VkPhysicalDevice physicalDevice);
 
 private:
+  QueueFamilyIndex findFamily(const VkPhysicalDevice& device) const;
 
+  VkQueue vkQueue_;
+  VkDeviceQueueCreateInfo queueCreateInfo_;
+  float queuePriority_;
 
 };

@@ -25,9 +25,13 @@ private:
 private:
   VkInstance vkInstance_;
 
-  // Physical and connected logical device.
+  // Physical device.
   VkPhysicalDevice physicalDevice_;
+  // Logical device.
   VkDevice device_;
+
+  // TODO: Set the device features.
+  VkPhysicalDeviceFeatures deviceFeatures_;
 
   QueueSelector queueSelector_;
 };

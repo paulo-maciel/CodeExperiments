@@ -43,39 +43,25 @@ void Device::selectPhysical() {
         physicalDevice_ = candidates.rbegin()->second;
 
         // Check if the device supports a GraphicsQueue
-        auto familyIndex = queueSelector_.findFamily(physicalDevice_);
-        if (!familyIndex.hasValue()) {
+        if (!queueSelector_.hasValidFamily(physicalDevice_)) {
             throw std::runtime_error("Selected device does not support a graphics queue!");
         }
     } else {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
+
+    cout << "Selected physical device!" << endl;
 }
 
 void Device::createLogical(const std::vector<const char*>& validationLayers) {
-    // Get a suitable queue family.  In this case, a graphics queue family.
-    auto familyIndex = queueSelector_.findFamily(physicalDevice_);
-
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = familyIndex.value();
-    queueCreateInfo.queueCount = 1;
-
-    // TODO: set appropriate priority
-    float queuePriority = 1.0f;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
-
-    // Create the logical device
-    // TODO: Specify the device features.
-    VkPhysicalDeviceFeatures deviceFeatures{};
-
-    VkDeviceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    cout << "Creating logical device...." << endl;
 
     // Specify our graphics queue
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    VkDeviceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &(queueSelector_.getQueueCreateInfo(physicalDevice_));
     createInfo.queueCreateInfoCount = 1;
-    createInfo.pEnabledFeatures = &deviceFeatures;
+    createInfo.pEnabledFeatures = &deviceFeatures_;
 
     // Add validation layers
     createInfo.enabledExtensionCount = 0;
@@ -85,11 +71,11 @@ void Device::createLogical(const std::vector<const char*>& validationLayers) {
     } else {
         createInfo.enabledLayerCount = 0;
     }
-
+    cout << "Calling vkCreateDevice on " << physicalDevice_ << endl;
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
-    cout << "Created the logica device!!!!" << endl;
+    cout << "Created the logical device." << endl;
 }
 
 int Device::rateDevice(const VkPhysicalDevice& physicalDevice) const {
