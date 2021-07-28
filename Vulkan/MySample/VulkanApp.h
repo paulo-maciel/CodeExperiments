@@ -1,6 +1,6 @@
 #include <vulkan/vulkan.h>
 
-#include <DeviceSelector.h>
+#include <Device.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -15,6 +15,7 @@
 
 #include <stdexcept>
 #include <cstdlib>
+#include <memory>
 
 #define NDEBUG 0
 
@@ -43,15 +44,10 @@ private:
                                       VkDebugUtilsMessengerEXT* pDebugMessenger);
 
 private:
-#if NDEBUG
-  const bool enableValidationLayers_ = false;
-#else
-  const bool enableValidationLayers_ = true;
   const std::vector<const char*> validationLayers_;
-#endif
 
   GLFWwindow* window_;
   VkInstance vkInstance_;
   VkDebugUtilsMessengerEXT debugMessenger_;
-  DeviceSelector deviceSelector_;
+  std::unique_ptr<Device> device_;
 };

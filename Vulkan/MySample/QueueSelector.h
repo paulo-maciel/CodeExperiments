@@ -12,6 +12,7 @@ public:
   struct QueueFamilyIndex {
     std::experimental::optional<uint32_t> graphicsFamily;
     bool hasValue();
+    uint32_t value();
   };
 
   QueueFamilyIndex findFamily(const VkPhysicalDevice& device);

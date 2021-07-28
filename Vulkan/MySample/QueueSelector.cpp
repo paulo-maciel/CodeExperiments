@@ -39,3 +39,7 @@ QueueSelector::QueueFamilyIndex QueueSelector::findFamily(const VkPhysicalDevice
 bool QueueSelector::QueueFamilyIndex::hasValue() {
   return graphicsFamily != experimental::fundamentals_v1::nullopt;
 }
+
+uint32_t QueueSelector::QueueFamilyIndex::value() {
+    return graphicsFamily.value();
+}

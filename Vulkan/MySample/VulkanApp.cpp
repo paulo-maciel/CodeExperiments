@@ -27,10 +27,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
 VulkanApp::VulkanApp()
 #if NDEBUG
-  : enableValidationLayers_(false)
+  : validationLayers_{}
 #else
-  : enableValidationLayers_(true)
-  , validationLayers_{"VK_LAYER_KHRONOS_validation"}
+  : validationLayers_{"VK_LAYER_KHRONOS_validation"}
 #endif 
 {
 }
@@ -83,7 +82,7 @@ void VulkanApp::initVulkan() {
     inst_info.pApplicationInfo = &app_info;
 
     // Check for the support of validation layers.
-    if (enableValidationLayers_) {
+    if (!validationLayers_.empty()) {
         if (checkValidationLayerSupport()) {
             inst_info.enabledLayerCount = static_cast<uint32_t>(validationLayers_.size());
             inst_info.ppEnabledLayerNames = validationLayers_.data();
@@ -113,8 +112,9 @@ void VulkanApp::initVulkan() {
     // Setup debug messenger callback.
     initDebugMessenger();
 
-    // Select a physical device.
-    deviceSelector_.select(vkInstance_);
+    // Select the physical device and create the associated logical device.
+    device_ = make_unique<Device>(vkInstance_);
+    device_->create(validationLayers_);
 
     cout << "Vulkan instance created." << endl;
 }
@@ -145,7 +145,10 @@ void VulkanApp::deInitGlfw() {
 
 void VulkanApp::deInitVulkan() {
 
-    if (enableValidationLayers_) {
+    // Destroy the device.
+    device_.reset(nullptr);
+
+    if (!validationLayers_.empty()) {
         deInitDebugMessenger();
     }
 
@@ -190,14 +193,14 @@ std::vector<const char*> VulkanApp::getRequiredExtensions() {
 
     vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    if (enableValidationLayers_) {
+    if (!validationLayers_.empty()) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
     return extensions;
 }
 
 void VulkanApp::initDebugMessenger() {
-    if (!enableValidationLayers_) {
+    if (validationLayers_.empty()) {
         return;
     }
 
