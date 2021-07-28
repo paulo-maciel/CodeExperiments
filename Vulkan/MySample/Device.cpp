@@ -7,7 +7,8 @@ using namespace std;
 Device::Device(VkInstance vkInstance) 
 : vkInstance_(vkInstance)
 , physicalDevice_(VK_NULL_HANDLE)
-, device_(VK_NULL_HANDLE) {
+, device_(VK_NULL_HANDLE)
+, deviceFeatures_{} {
 }
 
 Device::~Device() {
