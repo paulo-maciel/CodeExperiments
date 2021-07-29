@@ -30,6 +30,7 @@ public:
 private:
   bool checkValidationLayerSupport();
   void initGlfw();
+  void createSurface();
   void initVulkan();
   void update();
   void cleanup();
@@ -49,5 +50,10 @@ private:
   GLFWwindow* window_;
   VkInstance vkInstance_;
   VkDebugUtilsMessengerEXT debugMessenger_;
+  
+  // VkSurfaceKHR object and its usage is platform agnostic, its
+  // creation isn’t because it depends on window system details. 
+  // For example, it needs the HWND and HMODULE handles on Windows.
+  VkSurfaceKHR vkSurface_;
   std::unique_ptr<Device> device_;
 };

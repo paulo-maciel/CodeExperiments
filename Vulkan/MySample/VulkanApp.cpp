@@ -21,7 +21,16 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
                                             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                             void* pUserData) {
-    cout << "validation layer callback message: " << pCallbackData->pMessage << endl;
+    std::string cbMessage(pCallbackData->pMessage);
+    bool showMsg = true;
+    // Filter out extension messages.
+    if (cbMessage.find("Device Extension:") != std::string::npos) {
+        showMsg = false;
+    }
+
+    if (showMsg) {
+        cout << "validation layer callback message: " << cbMessage << endl;
+    }
     return VK_FALSE;
 }
 
@@ -31,6 +40,7 @@ VulkanApp::VulkanApp()
 #else
   : validationLayers_{"VK_LAYER_KHRONOS_validation"}
 #endif 
+  , vkSurface_{}
 {
 }
 
@@ -48,6 +58,12 @@ void VulkanApp::run() {
 void VulkanApp::init() {
   initGlfw();
   initVulkan();
+}
+
+void VulkanApp::createSurface() {
+    if (glfwCreateWindowSurface(vkInstance_, window_, nullptr, &vkSurface_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
 }
 
 void VulkanApp::initVulkan() {
@@ -112,6 +128,10 @@ void VulkanApp::initVulkan() {
     // Setup debug messenger callback.
     initDebugMessenger();
 
+    // Create the vulkan surface which associates the vulkan instance to the window system's 
+    // window handle.
+    createSurface();
+
     // Select the physical device and create the associated logical device.
     device_ = make_unique<Device>(vkInstance_);
     device_->create(validationLayers_);
@@ -144,6 +164,8 @@ void VulkanApp::deInitGlfw() {
 }
 
 void VulkanApp::deInitVulkan() {
+    cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
+    vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);
 
     // Destroy the device.
     device_.reset(nullptr);
