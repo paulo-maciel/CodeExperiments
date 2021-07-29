@@ -4,10 +4,11 @@
 
 using namespace std;
 
-Device::Device(VkInstance vkInstance) 
+Device::Device(VkInstance vkInstance, VkSurfaceKHR vkSurface) 
 : vkInstance_(vkInstance)
 , physicalDevice_(VK_NULL_HANDLE)
 , device_(VK_NULL_HANDLE)
+, vkSurface_(vkSurface)
 , deviceFeatures_{} {
 }
 
@@ -17,6 +18,7 @@ Device::~Device() {
 }
 
 void Device::create(const std::vector<const char*>& validationLayers) {
+  queueSelector_ = std::make_unique<QueueSelector>(vkSurface_);
   selectPhysical();
   createLogical(validationLayers);
 }
@@ -44,7 +46,7 @@ void Device::selectPhysical() {
         physicalDevice_ = candidates.rbegin()->second;
 
         // Check if the device supports a GraphicsQueue
-        if (!queueSelector_.hasValidFamily(physicalDevice_)) {
+        if (!queueSelector_->hasValidFamilies(physicalDevice_)) {
             throw std::runtime_error("Selected device does not support a graphics queue!");
         }
     } else {
@@ -60,7 +62,7 @@ void Device::createLogical(const std::vector<const char*>& validationLayers) {
     // Specify our graphics queue
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = &(queueSelector_.getQueueCreateInfo(physicalDevice_));
+    createInfo.pQueueCreateInfos = &(queueSelector_->getQueueCreateInfo(physicalDevice_));
     createInfo.queueCreateInfoCount = 1;
     createInfo.pEnabledFeatures = &deviceFeatures_;
 

@@ -7,12 +7,13 @@
 
 #include <stdexcept>
 #include <cstdlib>
+#include <memory>
 
 #define NDEBUG 0
 
 class Device {
 public:
-  Device(VkInstance vkInstance);
+  Device(VkInstance vkInstance, VkSurfaceKHR vkSurface);
   ~Device();
 
   void create(const std::vector<const char*>& validationLayers);
@@ -30,8 +31,10 @@ private:
   // Logical device.
   VkDevice device_;
 
+  VkSurfaceKHR vkSurface_;
+
   // TODO: Set the device features.
   VkPhysicalDeviceFeatures deviceFeatures_;
 
-  QueueSelector queueSelector_;
+  std::unique_ptr<QueueSelector> queueSelector_;
 };

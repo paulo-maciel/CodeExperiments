@@ -133,7 +133,7 @@ void VulkanApp::initVulkan() {
     createSurface();
 
     // Select the physical device and create the associated logical device.
-    device_ = make_unique<Device>(vkInstance_);
+    device_ = make_unique<Device>(vkInstance_, vkSurface_);
     device_->create(validationLayers_);
 
     cout << "Vulkan instance created." << endl;

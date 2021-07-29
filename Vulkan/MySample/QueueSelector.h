@@ -6,22 +6,25 @@
 
 class QueueSelector {
 public:
-  QueueSelector();
+  QueueSelector(VkSurfaceKHR vkSurface);
   ~QueueSelector();
 
-  struct QueueFamilyIndex {
+  struct QueueFamilyIndices {
     std::experimental::optional<uint32_t> graphicsFamily;
+    std::experimental::optional<uint32_t> presentFamily;
+    
     bool hasValue();
     uint32_t value();
   };
 
   const VkDeviceQueueCreateInfo& getQueueCreateInfo(VkPhysicalDevice physicalDevice);
-  bool hasValidFamily(VkPhysicalDevice physicalDevice);
+  bool hasValidFamilies(VkPhysicalDevice physicalDevice);
 
 private:
-  QueueFamilyIndex findFamily(const VkPhysicalDevice& device) const;
+  QueueFamilyIndices findFamilies(const VkPhysicalDevice& device) const;
 
   VkQueue vkQueue_;
+  VkSurfaceKHR vkSurface_;
   VkDeviceQueueCreateInfo queueCreateInfo_;
   float queuePriority_;
 
