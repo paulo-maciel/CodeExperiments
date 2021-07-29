@@ -3,13 +3,14 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <set>
 
 using namespace std;
 
 QueueSelector::QueueSelector(VkSurfaceKHR vkSurface)
-: vkQueue_{}
+: graphicsQueue_{}
+, presentQueue_{}
 , vkSurface_(vkSurface)
-, queueCreateInfo_{}
 , queuePriority_(1.0f) { // TODO: Set the appropriate priority.
 }
 
@@ -32,12 +33,11 @@ QueueSelector::QueueFamilyIndices QueueSelector::findFamilies(const VkPhysicalDe
     for (const auto& queueFamily : queueFamilies) {
         cout << "Testing family: " << i << endl;
         vkGetPhysicalDeviceSurfaceSupportKHR(device, i, vkSurface_, &presentSupport);
-        if (presentSupport) {
-          indexes.presentFamily = i;
-        }
-        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        if (presentSupport && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indexes.graphicsFamily = i;
-            cout << "Queue family " << i  << " supports a graphics queue." << endl;
+            indexes.presentFamily = i;
+            cout << "Queue family " << i  << " supports a graphics and present queue." << endl;
+            break;
         }
         i++;
     }
@@ -60,17 +60,28 @@ uint32_t QueueSelector::QueueFamilyIndices::value() {
     return graphicsFamily.value();
 }
 
-const VkDeviceQueueCreateInfo& QueueSelector::getQueueCreateInfo(VkPhysicalDevice physicalDevice) {
+VkDeviceQueueCreateInfo *QueueSelector::getQueuesCreateInfo(VkPhysicalDevice physicalDevice, VkDevice device) {
     // Get a suitable queue family.  In this case, a graphics queue family.
     auto familyIndexes = findFamilies(physicalDevice);
 
-    if (familyIndexes.hasValue()) {
-        cout << "Family indexes has value: " << familyIndexes.value() << endl;
-        queueCreateInfo_.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo_.queueFamilyIndex = familyIndexes.value();
-        queueCreateInfo_.queueCount = 1;
-        queueCreateInfo_.pQueuePriorities = &queuePriority_;
+    // Get the handles to the present and graphics queues.
+    // vkGetDeviceQueue(device, familyIndexes.presentFamily.value(), 0, &presentQueue_);
+    // vkGetDeviceQueue(device, familyIndexes.graphicsFamily.value(), 0, &graphicsQueue_);
+
+    std::set<uint32_t> uniqueQueueFamilies = {familyIndexes.graphicsFamily.value(), familyIndexes.presentFamily.value()};
+
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority_;
+        queuesCreateInfo_.push_back(queueCreateInfo);
     }
 
-    return queueCreateInfo_;
+    return queuesCreateInfo_.data();
+}
+
+uint32_t QueueSelector::getQueuesCreateInfoSize() const {
+  return queuesCreateInfo_.size();
 }

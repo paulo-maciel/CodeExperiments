@@ -62,8 +62,8 @@ void Device::createLogical(const std::vector<const char*>& validationLayers) {
     // Specify our graphics queue
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = &(queueSelector_->getQueueCreateInfo(physicalDevice_));
-    createInfo.queueCreateInfoCount = 1;
+    createInfo.pQueueCreateInfos = queueSelector_->getQueuesCreateInfo(physicalDevice_, device_);
+    createInfo.queueCreateInfoCount = queueSelector_->getQueuesCreateInfoSize();
     createInfo.pEnabledFeatures = &deviceFeatures_;
 
     // Add validation layers

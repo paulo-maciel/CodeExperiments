@@ -1,6 +1,7 @@
 #include <vulkan/vulkan.h>
 
 #include <experimental/optional>
+#include <vector>
 
 #define NDEBUG 0
 
@@ -17,15 +18,18 @@ public:
     uint32_t value();
   };
 
-  const VkDeviceQueueCreateInfo& getQueueCreateInfo(VkPhysicalDevice physicalDevice);
+  VkDeviceQueueCreateInfo *getQueuesCreateInfo(VkPhysicalDevice physicalDevice, VkDevice device);
+  uint32_t getQueuesCreateInfoSize() const;
+
   bool hasValidFamilies(VkPhysicalDevice physicalDevice);
 
 private:
   QueueFamilyIndices findFamilies(const VkPhysicalDevice& device) const;
 
-  VkQueue vkQueue_;
+  VkQueue graphicsQueue_;
+  VkQueue presentQueue_;
   VkSurfaceKHR vkSurface_;
-  VkDeviceQueueCreateInfo queueCreateInfo_;
+  std::vector<VkDeviceQueueCreateInfo> queuesCreateInfo_;
   float queuePriority_;
 
 };
