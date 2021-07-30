@@ -1,6 +1,7 @@
 #include <Device.h>
 
 #include <map>
+#include <set>
 
 using namespace std;
 
@@ -9,7 +10,8 @@ Device::Device(VkInstance vkInstance, VkSurfaceKHR vkSurface)
 , physicalDevice_(VK_NULL_HANDLE)
 , device_(VK_NULL_HANDLE)
 , vkSurface_(vkSurface)
-, deviceFeatures_{} {
+, deviceFeatures_{}
+, requiredExtensions_{VK_KHR_SWAPCHAIN_EXTENSION_NAME} {
 }
 
 Device::~Device() {
@@ -66,8 +68,11 @@ void Device::createLogical(const std::vector<const char*>& validationLayers) {
     createInfo.queueCreateInfoCount = queueSelector_->getQueuesCreateInfoSize();
     createInfo.pEnabledFeatures = &deviceFeatures_;
 
+    // Add required extension names (already validated in rateDevice)
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions_.size());
+    createInfo.ppEnabledExtensionNames = requiredExtensions_.data();
+
     // Add validation layers
-    createInfo.enabledExtensionCount = 0;
     if (!validationLayers.empty()) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
@@ -92,7 +97,7 @@ int Device::rateDevice(const VkPhysicalDevice& physicalDevice) const {
 
     // Discrete GPUs have a significant performance advantage.
     if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-        score += 1000;
+        score += 10000;
     }
 
     // Maximum possible size of textures affects graphics quality
@@ -100,8 +105,34 @@ int Device::rateDevice(const VkPhysicalDevice& physicalDevice) const {
 
     // Application can't function without geometry shaders
     if (!deviceFeatures.geometryShader) {
-        return 0;
+        cout << "Device does not support geometry shader." << endl;
+        score = -1;
+    } else {
+        score += 10000;
     }
 
+    if (!checkForRequiredExtension(physicalDevice)) {
+        cout << "Device does not support all of the required extensions." << endl;
+        score = -1;
+    } else {
+        score += 10000;
+    }
+
+    cout << "Total device score: " << score << endl;
     return score;
+}
+
+bool Device::checkForRequiredExtension(VkPhysicalDevice device) const {
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    std::set<std::string> requiredExtensions(requiredExtensions_.begin(), requiredExtensions_.end());
+
+    for (const auto& extension : availableExtensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }
+    return requiredExtensions.empty();
 }

@@ -22,6 +22,7 @@ private:
   void selectPhysical();
   int rateDevice(const VkPhysicalDevice& physicalDevice) const;
   void createLogical(const std::vector<const char*>& validationLayers);
+  bool checkForRequiredExtension(VkPhysicalDevice device) const;
 
 private:
   VkInstance vkInstance_;
@@ -37,4 +38,6 @@ private:
   VkPhysicalDeviceFeatures deviceFeatures_;
 
   std::unique_ptr<QueueSelector> queueSelector_;
+
+  const std::vector<const char*> requiredExtensions_;
 };
