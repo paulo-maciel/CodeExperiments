@@ -1,6 +1,7 @@
 #include <vulkan/vulkan.h>
 
 #include <QueueSelector.h>
+#include <SwapChain.h>
 
 #include <iostream>
 #include <vector>
@@ -38,6 +39,7 @@ private:
   VkPhysicalDeviceFeatures deviceFeatures_;
 
   std::unique_ptr<QueueSelector> queueSelector_;
+  std::unique_ptr<SwapChain> swapChain_;
 
   const std::vector<const char*> requiredExtensions_;
 };

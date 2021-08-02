@@ -21,6 +21,7 @@ Device::~Device() {
 
 void Device::create(const std::vector<const char*>& validationLayers) {
   queueSelector_ = std::make_unique<QueueSelector>(vkSurface_);
+  swapChain_ = std::make_unique<SwapChain>(vkSurface_);
   selectPhysical();
   createLogical(validationLayers);
 }
@@ -113,6 +114,15 @@ int Device::rateDevice(const VkPhysicalDevice& physicalDevice) const {
 
     if (!checkForRequiredExtension(physicalDevice)) {
         cout << "Device does not support all of the required extensions." << endl;
+        score = -1;
+    } else {
+        score += 10000;
+    }
+
+    // Query the swap chain.  Require that at least one format and one present mode is present.
+    SwapChain::Details swapChainDetails = swapChain_->getDetails(physicalDevice);
+    if (swapChainDetails.formats.empty() || swapChainDetails.presentModes.empty()) {
+        cout << "Device does not support at least one swapchain format or present mode." << endl;
         score = -1;
     } else {
         score += 10000;
