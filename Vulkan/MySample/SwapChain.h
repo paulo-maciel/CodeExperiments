@@ -41,4 +41,7 @@ private:
   VkSurfaceFormatKHR format_;
   VkPresentModeKHR presentMode_;
   VkExtent2D extent2D_;  
+
+  // Images created by the implementation currently in this swap chain.
+  std::vector<VkImage> images_;
 };

@@ -158,7 +158,13 @@ bool SwapChain::create(Device *device, QueueSelector::QueueFamilyIndices familyI
       throw std::runtime_error("failed to create swap chain!");
     }
 
-    cout << "Selected format/presentMode/extent2D!" << endl;
+    // Cache the handles to the swap chain images.  Note the imageCount may be
+    // higher than the minimum requested.
+    vkGetSwapchainImagesKHR(device_, vkSwapChain_, &imageCount, nullptr);
+    images_.resize(imageCount);
+    vkGetSwapchainImagesKHR(device_, vkSwapChain_, &imageCount, images_.data());
+
+    cout << "Created a swap chain containing " << imageCount << " images." << endl;
     return true;
 }
 
