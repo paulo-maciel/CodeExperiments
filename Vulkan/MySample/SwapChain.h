@@ -44,4 +44,5 @@ private:
 
   // Images created by the implementation currently in this swap chain.
   std::vector<VkImage> images_;
+  std::vector<VkImageView> imagesView_;
 };
