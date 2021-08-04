@@ -21,9 +21,11 @@ Device::~Device() {
 
 void Device::create(const std::vector<const char*>& validationLayers) {
   queueSelector_ = std::make_unique<QueueSelector>(vkSurface_);
-  swapChain_ = std::make_unique<SwapChain>(vkSurface_);
+  swapChain_ = std::make_shared<SwapChain>(vkSurface_);
   selectPhysical();
   createLogical(validationLayers);
+  auto familyIndexes = queueSelector_->findFamilies(physicalDevice_);
+  swapChain_->create(this, familyIndexes);
 }
 
 void Device::selectPhysical() {
@@ -87,7 +89,7 @@ void Device::createLogical(const std::vector<const char*>& validationLayers) {
     cout << "Created the logical device." << endl;
 }
 
-int Device::rateDevice(const VkPhysicalDevice& physicalDevice) const {
+int Device::rateDevice(const VkPhysicalDevice& physicalDevice) {
     int score = 0;
 
     VkPhysicalDeviceProperties deviceProperties;
@@ -145,4 +147,20 @@ bool Device::checkForRequiredExtension(VkPhysicalDevice device) const {
         requiredExtensions.erase(extension.extensionName);
     }
     return requiredExtensions.empty();
+}
+
+VkPhysicalDevice Device::getPhysicalDevice() const {
+  return physicalDevice_;
+}
+
+VkDevice Device::getLogicalDevice() const {
+  return device_;
+}
+
+void Device::destroy() {
+    cout << "Destroying the Vulkan swap chain. " << endl;
+    swapChain_->destroy();
+
+    cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
+    vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);
 }

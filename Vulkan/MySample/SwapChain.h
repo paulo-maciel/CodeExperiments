@@ -1,9 +1,15 @@
+#pragma once
+
 #include <vulkan/vulkan.h>
+
+#include <QueueSelector.h>
 
 
 #include <vector>
 
 #define NDEBUG 0
+
+class Device;
 
 class SwapChain {
 public:
@@ -16,9 +22,23 @@ public:
     std::vector<VkPresentModeKHR> presentModes;
   };
 
-  Details getDetails(VkPhysicalDevice device);
-  
+  bool create(Device *device, QueueSelector::QueueFamilyIndices familyIndexes);
+  void destroy();
+
+  Details getDetails(VkPhysicalDevice device) const;
 
 private:
+  VkSurfaceFormatKHR selectSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const;
+  VkPresentModeKHR   selectSwapPresentMode(const std::vector<VkPresentModeKHR>& presentModes) const;
+  // Resolution of the swap chain images and typically, the same as the resolution of the window.
+  VkExtent2D selectSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
+  
+private:
   VkSurfaceKHR vkSurface_;
+  VkSwapchainKHR vkSwapChain_;
+  VkDevice device_;
+
+  VkSurfaceFormatKHR format_;
+  VkPresentModeKHR presentMode_;
+  VkExtent2D extent2D_;  
 };

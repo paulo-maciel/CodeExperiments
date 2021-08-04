@@ -132,7 +132,7 @@ void VulkanApp::initVulkan() {
     // window handle.
     createSurface();
 
-    // Select the physical device and create the associated logical device.
+    // Select the physical device, and create the associated logical device and swapchain.
     device_ = make_unique<Device>(vkInstance_, vkSurface_);
     device_->create(validationLayers_);
 
@@ -164,8 +164,7 @@ void VulkanApp::deInitGlfw() {
 }
 
 void VulkanApp::deInitVulkan() {
-    cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
-    vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);
+    device_->destroy();
 
     // Destroy the device.
     device_.reset(nullptr);

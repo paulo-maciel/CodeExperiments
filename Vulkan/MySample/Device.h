@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vulkan/vulkan.h>
 
 #include <QueueSelector.h>
@@ -18,10 +20,14 @@ public:
   ~Device();
 
   void create(const std::vector<const char*>& validationLayers);
+  void destroy();
+
+  VkPhysicalDevice getPhysicalDevice() const;
+  VkDevice         getLogicalDevice() const;
 
 private:
   void selectPhysical();
-  int rateDevice(const VkPhysicalDevice& physicalDevice) const;
+  int rateDevice(const VkPhysicalDevice& physicalDevice);
   void createLogical(const std::vector<const char*>& validationLayers);
   bool checkForRequiredExtension(VkPhysicalDevice device) const;
 
@@ -30,6 +36,7 @@ private:
 
   // Physical device.
   VkPhysicalDevice physicalDevice_;
+  
   // Logical device.
   VkDevice device_;
 
@@ -39,7 +46,7 @@ private:
   VkPhysicalDeviceFeatures deviceFeatures_;
 
   std::unique_ptr<QueueSelector> queueSelector_;
-  std::unique_ptr<SwapChain> swapChain_;
+  std::shared_ptr<SwapChain> swapChain_;
 
   const std::vector<const char*> requiredExtensions_;
 };

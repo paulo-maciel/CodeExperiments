@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vulkan/vulkan.h>
 
 #include <experimental/optional>
@@ -7,6 +9,8 @@
 
 class QueueSelector {
 public:
+  friend class Device;
+  
   QueueSelector(VkSurfaceKHR vkSurface);
   ~QueueSelector();
 
