@@ -90,6 +90,10 @@ VkExtent2D SwapChain::getExtent2D() const {
   return extent2D_;
 }
 
+VkSurfaceFormatKHR SwapChain::getFormat() const {
+  return format_;
+}
+
 bool SwapChain::create(Device *device, QueueSelector::QueueFamilyIndices familyIndexes) {
     auto physicalDevice = device->getPhysicalDevice();
     device_ = device->getLogicalDevice();

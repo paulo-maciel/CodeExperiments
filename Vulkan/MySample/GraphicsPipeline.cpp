@@ -8,9 +8,9 @@
 
 using namespace std;
 
-GraphicsPipeline::GraphicsPipeline(VkDevice device, VkExtent2D extent2D)
+GraphicsPipeline::GraphicsPipeline(VkDevice device, std::shared_ptr<SwapChain> swapChain)
 : device_(device)
-, extent2D_(extent2D) {
+, swapChain_(swapChain) {
 }
 
 GraphicsPipeline::~GraphicsPipeline() {
@@ -18,8 +18,43 @@ GraphicsPipeline::~GraphicsPipeline() {
 }
 
 void GraphicsPipeline::destroy() {
+    cout << "Destroying the render pass." << endl;
+    vkDestroyRenderPass(device_, renderPass_, nullptr);
+
     cout << "Destroying the graphics pipeline." << endl;
     vkDestroyPipelineLayout(device_, pipelineLayout_, nullptr);
+}
+
+void GraphicsPipeline::createRenderPass() {
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = swapChain_->getFormat().format;
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 1;
+    renderPassInfo.pAttachments = &colorAttachment;
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+
+    if (vkCreateRenderPass(device_, &renderPassInfo, nullptr, &renderPass_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create render pass!");
+    }
 }
 
 void GraphicsPipeline::create() {
@@ -45,6 +80,9 @@ void GraphicsPipeline::create() {
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 #endif
+    // First create a render pass.
+    createRenderPass();
+
     // Configure what used to be the fixed function portion of the pipeline
     configFixedFunction();
 
@@ -89,14 +127,15 @@ void GraphicsPipeline::configFixedFunction() {
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float) extent2D_.width;
-    viewport.height = (float) extent2D_.height;
+    auto extent2D = swapChain_->getExtent2D();
+    viewport.width = (float) extent2D.width;
+    viewport.height = (float) extent2D.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = extent2D_;
+    scissor.extent = extent2D;
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

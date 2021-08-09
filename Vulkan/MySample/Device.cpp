@@ -30,7 +30,7 @@ void Device::create(const std::vector<const char*>& validationLayers) {
 
   // Now that we have a logical device and a swap chain,
   // we can create the graphics pipeline.
-  graphicsPipeline_ = std::make_shared<GraphicsPipeline>(device_, swapChain_->getExtent2D());
+  graphicsPipeline_ = std::make_shared<GraphicsPipeline>(device_, swapChain_);
   graphicsPipeline_->create();
 }
 
