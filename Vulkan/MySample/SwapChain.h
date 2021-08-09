@@ -26,6 +26,7 @@ public:
   void destroy();
 
   Details getDetails(VkPhysicalDevice device) const;
+  VkExtent2D getExtent2D() const;
 
 private:
   VkSurfaceFormatKHR selectSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const;

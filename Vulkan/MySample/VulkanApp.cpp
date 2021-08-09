@@ -136,6 +136,8 @@ void VulkanApp::initVulkan() {
     device_ = make_unique<Device>(vkInstance_, vkSurface_);
     device_->create(validationLayers_);
 
+    
+
     cout << "Vulkan instance created." << endl;
 }
 

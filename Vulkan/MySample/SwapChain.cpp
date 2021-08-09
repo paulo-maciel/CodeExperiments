@@ -86,6 +86,10 @@ SwapChain::Details SwapChain::getDetails(VkPhysicalDevice device) const {
     return details;
 }
 
+VkExtent2D SwapChain::getExtent2D() const {
+  return extent2D_;
+}
+
 bool SwapChain::create(Device *device, QueueSelector::QueueFamilyIndices familyIndexes) {
     auto physicalDevice = device->getPhysicalDevice();
     device_ = device->getLogicalDevice();

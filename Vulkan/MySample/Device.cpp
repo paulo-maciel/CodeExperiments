@@ -22,10 +22,16 @@ Device::~Device() {
 void Device::create(const std::vector<const char*>& validationLayers) {
   queueSelector_ = std::make_unique<QueueSelector>(vkSurface_);
   swapChain_ = std::make_shared<SwapChain>(vkSurface_);
+
   selectPhysical();
   createLogical(validationLayers);
   auto familyIndexes = queueSelector_->findFamilies(physicalDevice_);
   swapChain_->create(this, familyIndexes);
+
+  // Now that we have a logical device and a swap chain,
+  // we can create the graphics pipeline.
+  graphicsPipeline_ = std::make_shared<GraphicsPipeline>(device_, swapChain_->getExtent2D());
+  graphicsPipeline_->create();
 }
 
 void Device::selectPhysical() {
@@ -158,6 +164,9 @@ VkDevice Device::getLogicalDevice() const {
 }
 
 void Device::destroy() {
+    cout << "Destroying Vulkan pipeline. " << endl;
+    graphicsPipeline_->destroy();
+
     cout << "Destroying the Vulkan swap chain. " << endl;
     swapChain_->destroy();
 

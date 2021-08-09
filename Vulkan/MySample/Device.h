@@ -4,6 +4,7 @@
 
 #include <QueueSelector.h>
 #include <SwapChain.h>
+#include <GraphicsPipeline.h>
 
 #include <iostream>
 #include <vector>
@@ -47,6 +48,7 @@ private:
 
   std::unique_ptr<QueueSelector> queueSelector_;
   std::shared_ptr<SwapChain> swapChain_;
+  std::shared_ptr<GraphicsPipeline> graphicsPipeline_;
 
   const std::vector<const char*> requiredExtensions_;
 };
