@@ -27,24 +27,70 @@ void GraphicsPipeline::destroy() {
 
 void GraphicsPipeline::createRenderPass() {
     VkAttachmentDescription colorAttachment{};
+
+    // Note: The format of the color attachment should match the format of 
+    // the swap chain images.
     colorAttachment.format = swapChain_->getFormat().format;
+
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+    // The loadOp and storeOp determine what to do with the data in the attachment
+    //  before rendering and after rendering. We have the following choices for loadOp:
+    //• VK_ATTACHMENT_LOAD_OP_LOAD: Preserve the existing contents of the attachment
+    //• VK_ATTACHMENT_LOAD_OP_CLEAR: Clear the values to a constant at the start
+    //• VK_ATTACHMENT_LOAD_OP_DONT_CARE: Existing contents are undefined;
+    // we don’t care about them.
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+
+    // There are two possibilities for the storeOp:
+    //• VK_ATTACHMENT_STORE_OP_STORE: Rendered contents will be stored in
+    // memory and can be read later
+    //• VK_ATTACHMENT_STORE_OP_DONT_CARE: Contents of the framebuffer will
+    // be undefined after the rendering operation
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
     colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+    // Common layouts: 
+    // VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: Images used as color attachment
+    // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: Images to be presented in the swap chain
+    // VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: Images to be used as destination for 
+    // a memory copy operation
+    // Note: The initialLayout specifies which layout the image will have before the 
+    // render pass begins. The finalLayout specifies the layout to automatically 
+    // transition to when the render pass finishes.
     colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
+    // Note: A single render pass can consist of multiple subpasses. Subpasses are subsequent
+    // rendering operations that depend on the contents of framebuffers in previous
+    // passes, for example a sequence of post-processing effects that are applied one
+    // after another.
     VkAttachmentReference colorAttachmentRef{};
-    colorAttachmentRef.attachment = 0;
+    // Index is 0 here since we only have one color attachment in the attachment 
+    // descriptions array (i.e. VkAttachmentDescription)
+    // Important: The index of the attachment in this array is directly referenced 
+    // from the fragment shader with the layout(location = 0)out vec4 outColor directive!
+    colorAttachmentRef.attachment = 0;  
+    // intend to use the attachment to function as color buffer
     colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+    // Description of the subpass.
     VkSubpassDescription subpass{};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;  // as opposed to COMPUTE
+
     subpass.colorAttachmentCount = 1;
+
+    // Note: The following other types of attachments can be referenced by a subpass:
+    // • pInputAttachments: Attachments that are read from a shader
+    // • pResolveAttachments: Attachments used for multisampling color attachments
+    // • pDepthStencilAttachment: Attachment for depth and stencil data
+    // • pPreserveAttachments: Attachments that are not used by this subpass,
+    //   but for which the data must be preserved.
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    // Now, create the renderpass.
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassInfo.attachmentCount = 1;
