@@ -9,7 +9,8 @@
 using namespace std;
 
 GraphicsPipeline::GraphicsPipeline(VkDevice device, std::shared_ptr<SwapChain> swapChain)
-: device_(device)
+: numStages_(2)
+, device_(device)
 , swapChain_(swapChain) {
 }
 
@@ -106,12 +107,30 @@ void GraphicsPipeline::createRenderPass() {
     }
 }
 
+// In order to create the pipeline, we need:
+// • Shader stages: the shader modules that define the functionality of the
+// programmable stages of the graphics pipeline
+// • Fixed-function state: all of the structures that define the fixed-function
+// stages of the pipeline, like input assembly, rasterizer, viewport and color
+// blending
+// • Pipeline layout: the uniform and push values referenced by the shader
+// that can be updated at draw time
+// • Render pass: the attachments referenced by the pipeline stages and their
+// usage
 void GraphicsPipeline::create() {
     // First create a render pass.
     createRenderPass();
 
+    // Create the pipeline shader stages.
+    createShaderStages();
+    cout << "Created the shader stages." << endl;
+
     // Configure what used to be the fixed function portion of the pipeline
-    configFixedFunction();
+    createPipeline();
+
+    // Shader modules no longer needed.
+    vkDestroyShaderModule(device_, fragShaderModule_, nullptr);
+    vkDestroyShaderModule(device_, vertShaderModule_, nullptr);
 }
 
 VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& code) {
@@ -128,7 +147,35 @@ VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& cod
     return shaderModule;
 }
 
-void GraphicsPipeline::configFixedFunction() {
+void GraphicsPipeline::createShaderStages() {
+    auto vertShaderCode = readFile("shaders/mysamplevs.spv");
+    auto fragShaderCode = readFile("shaders/mysamplefs.spv");
+
+    vertShaderModule_ = createShaderModule(vertShaderCode);
+    fragShaderModule_ = createShaderModule(fragShaderCode);
+
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageInfo.module = vertShaderModule_;
+    vertShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = fragShaderModule_;
+    fragShaderStageInfo.pName = "main";
+
+    // List of shader stages.
+    shaderStages_ = new VkPipelineShaderStageCreateInfo[numStages_];
+    shaderStages_[0] = vertShaderStageInfo;
+    shaderStages_[1] = fragShaderStageInfo;
+
+    // TODO: Can the VkShaderModule (s) be deleted once they've been copied to 
+    // the pipeline shader stage create info?
+}
+
+void GraphicsPipeline::createPipeline() {
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.vertexBindingDescriptionCount = 0;  // TODO: For now, the vertices are hardcoded in the shader.
@@ -232,26 +279,6 @@ void GraphicsPipeline::configFixedFunction() {
     colorBlending.blendConstants[2] = 0.0f;
     colorBlending.blendConstants[3] = 0.0f;
 
-    auto vertShaderCode = readFile("shaders/mysamplevs.spv");
-    auto fragShaderCode = readFile("shaders/mysamplefs.spv");
-
-    VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-    VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
-
-    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertShaderStageInfo.module = vertShaderModule;
-    vertShaderStageInfo.pName = "main";
-
-    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShaderStageInfo.module = fragShaderModule;
-    fragShaderStageInfo.pName = "main";
-
-    // List of shader stages.
-    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
     // TODO: Config dynamic states such as below.  These don't require that the pipeline be
     // recreated:
@@ -275,14 +302,14 @@ void GraphicsPipeline::configFixedFunction() {
     if (vkCreatePipelineLayout(device_, &pipelineLayoutInfo, nullptr, &pipelineLayout_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
-
     cout << "Created the pipeline layout." << endl;
 
     // Create the pipeline
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = 2;
-    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.stageCount = numStages_;
+    pipelineInfo.pStages = shaderStages_;
+
     // From fixed function config
     pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -300,10 +327,6 @@ void GraphicsPipeline::configFixedFunction() {
     if (vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
-
-    // TODO: Shader module no longer needed?
-    vkDestroyShaderModule(device_, fragShaderModule, nullptr);
-    vkDestroyShaderModule(device_, vertShaderModule, nullptr);
 
     cout << "Created the pipeline!" << endl;
 }

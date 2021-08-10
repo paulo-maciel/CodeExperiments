@@ -23,10 +23,17 @@ public:
   void createRenderPass();
 
 private:
+  void createShaderStages();
   VkShaderModule createShaderModule(const std::vector<char>& code);
-  void configFixedFunction();
+  void createPipeline();
 
 private:
+  uint8_t numStages_;
+  VkShaderModule vertShaderModule_;
+  VkShaderModule fragShaderModule_;
+  
+  VkPipelineShaderStageCreateInfo *shaderStages_;
+
   VkDevice device_;
 
   // Swapchain for 2D extent and format.
