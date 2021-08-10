@@ -35,4 +35,7 @@ private:
   VkRenderPass renderPass_;
   VkPipelineLayout pipelineLayout_;
 
+  // The actual graphics pipeline.
+  VkPipeline graphicsPipeline_;
+
 };

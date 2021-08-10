@@ -21,8 +21,11 @@ void GraphicsPipeline::destroy() {
     cout << "Destroying the render pass." << endl;
     vkDestroyRenderPass(device_, renderPass_, nullptr);
 
-    cout << "Destroying the graphics pipeline." << endl;
+    cout << "Destroying the pipeline layout." << endl;
     vkDestroyPipelineLayout(device_, pipelineLayout_, nullptr);
+
+    cout << "Destroying the pipeline." << endl;
+    vkDestroyPipeline(device_, graphicsPipeline_, nullptr); 
 }
 
 void GraphicsPipeline::createRenderPass() {
@@ -104,39 +107,11 @@ void GraphicsPipeline::createRenderPass() {
 }
 
 void GraphicsPipeline::create() {
-
-#if 0 // TODO: Enable this.
-    auto vertShaderCode = readFile("shaders/vert.spv");
-    auto fragShaderCode = readFile("shaders/frag.spv");
-
-    VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-    VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
-
-    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertShaderStageInfo.module = vertShaderModule;
-    vertShaderStageInfo.pName = "main";
-
-    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShaderStageInfo.module = fragShaderModule;
-    fragShaderStageInfo.pName = "main";
-
-    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
-#endif
     // First create a render pass.
     createRenderPass();
 
     // Configure what used to be the fixed function portion of the pipeline
     configFixedFunction();
-
-    // TODO: Move to deinit.
-#if 0
-    vkDestroyShaderModule(device_, fragShaderModule, nullptr);
-    vkDestroyShaderModule(device_, vertShaderModule, nullptr);
-#endif
 }
 
 VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& code) {
@@ -257,6 +232,27 @@ void GraphicsPipeline::configFixedFunction() {
     colorBlending.blendConstants[2] = 0.0f;
     colorBlending.blendConstants[3] = 0.0f;
 
+    auto vertShaderCode = readFile("shaders/mysamplevs.spv");
+    auto fragShaderCode = readFile("shaders/mysamplefs.spv");
+
+    VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+    VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageInfo.module = vertShaderModule;
+    vertShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = fragShaderModule;
+    fragShaderStageInfo.pName = "main";
+
+    // List of shader stages.
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+
     // TODO: Config dynamic states such as below.  These don't require that the pipeline be
     // recreated:
     // VkDynamicState dynamicStates[] = {
@@ -281,6 +277,35 @@ void GraphicsPipeline::configFixedFunction() {
     }
 
     cout << "Created the pipeline layout." << endl;
+
+    // Create the pipeline
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    // From fixed function config
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.layout = pipelineLayout_;
+
+    // From render pass.
+    pipelineInfo.renderPass = renderPass_;
+    pipelineInfo.subpass = 0;
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+    if (vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics pipeline!");
+    }
+
+    // TODO: Shader module no longer needed?
+    vkDestroyShaderModule(device_, fragShaderModule, nullptr);
+    vkDestroyShaderModule(device_, vertShaderModule, nullptr);
+
+    cout << "Created the pipeline!" << endl;
 }
 
 //static 
@@ -298,6 +323,8 @@ std::vector<char> GraphicsPipeline::readFile(const std::string& filename) {
     file.read(buffer.data(), fileSize);
 
     file.close();
+
+    cout << "Read shader file: " << filename << endl;
 
     return buffer;
 }
