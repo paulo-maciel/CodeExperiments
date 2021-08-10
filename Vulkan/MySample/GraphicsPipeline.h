@@ -21,6 +21,7 @@ public:
   void destroy();
 
   void createRenderPass();
+  VkRenderPass getRenderPass() const;
 
 private:
   void createShaderStages();

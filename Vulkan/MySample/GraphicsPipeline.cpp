@@ -107,6 +107,10 @@ void GraphicsPipeline::createRenderPass() {
     }
 }
 
+VkRenderPass GraphicsPipeline::getRenderPass() const {
+  return renderPass_;
+}
+
 // In order to create the pipeline, we need:
 // • Shader stages: the shader modules that define the functionality of the
 // programmable stages of the graphics pipeline
@@ -321,9 +325,30 @@ void GraphicsPipeline::createPipeline() {
 
     // From render pass.
     pipelineInfo.renderPass = renderPass_;
-    pipelineInfo.subpass = 0;
-    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
+    // Note: subpass is the index of the subpass in the render pass 
+    //       where this pipeline will be used.  Since there is only one
+    //       index is 0.
+    pipelineInfo.subpass = 0;
+
+    // Note: basePipelineHandle and basePipelineIndex. Vulkan allows you to create a new graphics pipeline by
+    // deriving from an existing pipeline. The idea of pipeline derivatives is that
+    // it is less expensive to set up pipelines when they have much functionality in
+    // common with an existing pipeline and switching between pipelines from the
+    // same parent can also be done quicker. You can either specify the handle of an
+    // existing pipeline with basePipelineHandle or reference another pipeline that
+    // is about to be created by index with basePipelineIndex. Right now there is
+    // only a single pipeline, so we’ll simply specify a null handle and an invalid index.
+    // These values are only used if the VK_PIPELINE_CREATE_DERIVATIVE_BIT flag
+    // is also specified in the flags field of VkGraphicsPipelineCreateInfo.
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+    //pipelineInfo.basePipelineIndex = -1; // Optional
+
+
+    // Note: The vkCreateGraphicsPipelines function actually has more parameters than
+    // the usual object creation functions in Vulkan. It is designed to take multiple
+    // VkGraphicsPipelineCreateInfo objects and create multiple VkPipeline ob-
+    // jects in a single call.
     if (vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }

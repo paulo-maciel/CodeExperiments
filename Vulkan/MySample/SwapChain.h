@@ -29,6 +29,10 @@ public:
   VkExtent2D getExtent2D() const;
   VkSurfaceFormatKHR getFormat() const;
 
+  std::vector<VkImageView> getImagesView() const;
+
+  void createFrameBuffer(VkRenderPass renderPass);
+
 private:
   VkSurfaceFormatKHR selectSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const;
   VkPresentModeKHR   selectSwapPresentMode(const std::vector<VkPresentModeKHR>& presentModes) const;
@@ -47,4 +51,7 @@ private:
   // Images created by the implementation currently in this swap chain.
   std::vector<VkImage> images_;
   std::vector<VkImageView> imagesView_;
+
+  // These are the frame buffers associated to the views vector above.
+  std::vector<VkFramebuffer> frameBuffers_;
 };

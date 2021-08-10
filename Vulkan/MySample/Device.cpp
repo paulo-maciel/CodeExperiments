@@ -32,6 +32,9 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // we can create the graphics pipeline.
   graphicsPipeline_ = std::make_shared<GraphicsPipeline>(device_, swapChain_);
   graphicsPipeline_->create();
+
+  // Create the frame buffers.
+  swapChain_->createFrameBuffer(graphicsPipeline_->getRenderPass());
 }
 
 void Device::selectPhysical() {
