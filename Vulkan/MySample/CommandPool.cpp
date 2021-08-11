@@ -16,11 +16,13 @@ CommandPool::CommandPool(std::shared_ptr<Device> device)
 
 CommandPool::~CommandPool() {
     cout << "CommandPool destructor called." << endl;
-    device_.reset();
 }
 
 void CommandPool::destroy() {
     vkDestroyCommandPool(device_->getLogicalDevice(), commandPool_, nullptr);
+
+    // No longer need the device.
+    device_.reset();
 }
 
 void CommandPool::create() {

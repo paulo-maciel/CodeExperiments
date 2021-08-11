@@ -20,7 +20,7 @@ Device::~Device() {
 }
 
 void Device::create(const std::vector<const char*>& validationLayers) {
-  queueSelector_ = std::make_unique<QueueSelector>(vkSurface_);
+  queueSelector_ = std::make_shared<QueueSelector>(vkSurface_);
   swapChain_ = std::make_shared<SwapChain>(vkSurface_);
 
   selectPhysical();
@@ -185,15 +185,12 @@ std::shared_ptr<GraphicsPipeline> Device::getGraphicsPipeline() {
 void Device::destroy() {
     cout << "Destroying the command pool. " << endl;
     commandPool_->destroy();
-    commandPool_.reset();
 
     cout << "Destroying Vulkan pipeline. " << endl;
     graphicsPipeline_->destroy();
-    graphicsPipeline_.reset();
 
     cout << "Destroying the Vulkan swap chain. " << endl;
     swapChain_->destroy();
-    swapChain_.reset();
 
     cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
     vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);
