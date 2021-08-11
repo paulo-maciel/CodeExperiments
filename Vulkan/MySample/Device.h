@@ -5,6 +5,7 @@
 #include <QueueSelector.h>
 #include <SwapChain.h>
 #include <GraphicsPipeline.h>
+#include <CommandPool.h>
 
 #include <iostream>
 #include <vector>
@@ -15,10 +16,14 @@
 
 #define NDEBUG 0
 
-class Device {
+class Device : public std::enable_shared_from_this<Device> {
 public:
   Device(VkInstance vkInstance, VkSurfaceKHR vkSurface);
   ~Device();
+
+  std::shared_ptr<Device> getptr() {
+      return shared_from_this();
+  }
 
   void create(const std::vector<const char*>& validationLayers);
   void destroy();
@@ -53,6 +58,7 @@ private:
   std::shared_ptr<QueueSelector> queueSelector_;
   std::shared_ptr<SwapChain> swapChain_;
   std::shared_ptr<GraphicsPipeline> graphicsPipeline_;
+  std::shared_ptr<CommandPool> commandPool_;
 
   const std::vector<const char*> requiredExtensions_;
 };

@@ -133,7 +133,7 @@ void VulkanApp::initVulkan() {
     createSurface();
 
     // Select the physical device, and create the associated logical device and swapchain.
-    device_ = make_unique<Device>(vkInstance_, vkSurface_);
+    device_ = make_shared<Device>(vkInstance_, vkSurface_);
     device_->create(validationLayers_);
 
     cout << "Vulkan instance created." << endl;
@@ -164,10 +164,9 @@ void VulkanApp::deInitGlfw() {
 }
 
 void VulkanApp::deInitVulkan() {
-    device_->destroy();
-
     // Destroy the device.
-    device_.reset(nullptr);
+    device_->destroy();
+    device_.reset();
 
     if (!validationLayers_.empty()) {
         deInitDebugMessenger();

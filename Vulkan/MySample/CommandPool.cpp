@@ -16,6 +16,11 @@ CommandPool::CommandPool(std::shared_ptr<Device> device)
 
 CommandPool::~CommandPool() {
     cout << "CommandPool destructor called." << endl;
+    device_.reset();
+}
+
+void CommandPool::destroy() {
+    vkDestroyCommandPool(device_->getLogicalDevice(), commandPool_, nullptr);
 }
 
 void CommandPool::create() {
@@ -25,6 +30,17 @@ void CommandPool::create() {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+    // There are two possible flags for command pools:
+    // • VK_COMMAND_POOL_CREATE_TRANSIENT_BIT: Hint that command buffers
+    // are rerecorded with new commands very often (may change memory allo-
+    // cation behavior)
+    // • VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT:
+    // Allow command buffers to be rerecorded individually, without this flag they all have
+    // to be reset together.  Using neither for the time being, since will only record the 
+    // command buffers at the beginning of the program and then execute them many times in 
+    // the main loop.
+    poolInfo.flags = 0; // Optional
 
     if (vkCreateCommandPool(device_->getLogicalDevice(), &poolInfo, nullptr, &commandPool_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create command pool!");

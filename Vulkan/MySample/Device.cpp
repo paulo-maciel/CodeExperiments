@@ -35,6 +35,10 @@ void Device::create(const std::vector<const char*>& validationLayers) {
 
   // Create the frame buffers.
   swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass());
+
+  // Create the command pool.
+  commandPool_ = std::make_shared<CommandPool>(getptr());
+  commandPool_->create();
 }
 
 void Device::selectPhysical() {
@@ -179,11 +183,17 @@ std::shared_ptr<GraphicsPipeline> Device::getGraphicsPipeline() {
 }
 
 void Device::destroy() {
+    cout << "Destroying the command pool. " << endl;
+    commandPool_->destroy();
+    commandPool_.reset();
+
     cout << "Destroying Vulkan pipeline. " << endl;
     graphicsPipeline_->destroy();
+    graphicsPipeline_.reset();
 
     cout << "Destroying the Vulkan swap chain. " << endl;
     swapChain_->destroy();
+    swapChain_.reset();
 
     cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
     vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);

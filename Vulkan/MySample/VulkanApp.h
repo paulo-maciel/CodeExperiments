@@ -55,5 +55,5 @@ private:
   // creation isn’t because it depends on window system details. 
   // For example, it needs the HWND and HMODULE handles on Windows.
   VkSurfaceKHR vkSurface_;
-  std::unique_ptr<Device> device_;
+  std::shared_ptr<Device> device_;
 };
