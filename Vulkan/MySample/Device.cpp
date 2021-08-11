@@ -34,7 +34,7 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   graphicsPipeline_->create();
 
   // Create the frame buffers.
-  swapChain_->createFrameBuffer(graphicsPipeline_->getRenderPass());
+  swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass());
 }
 
 void Device::selectPhysical() {
@@ -164,6 +164,18 @@ VkPhysicalDevice Device::getPhysicalDevice() const {
 
 VkDevice Device::getLogicalDevice() const {
   return device_;
+}
+
+std::shared_ptr<QueueSelector> Device::getQueueSelector() {
+  return queueSelector_;
+}
+
+std::shared_ptr<SwapChain> Device::getSwapChain() {
+  return swapChain_;
+}
+
+std::shared_ptr<GraphicsPipeline> Device::getGraphicsPipeline() {
+    return graphicsPipeline_;
 }
 
 void Device::destroy() {

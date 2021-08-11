@@ -11,7 +11,8 @@ LDFLAGS += -lpthread -lm -g -O0
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-OBJS = MySample.o VulkanApp.o Device.o QueueSelector.o SwapChain.o GraphicsPipeline.o
+OBJS = MySample.o VulkanApp.o Device.o QueueSelector.o SwapChain.o GraphicsPipeline.o \
+       CommandPool.o
 
 myvulkan: $(OBJS)
 	g++ $(CFLAGS) -o myvulkan $(OBJS) $(LDFLAGS)

@@ -111,6 +111,10 @@ VkRenderPass GraphicsPipeline::getRenderPass() const {
   return renderPass_;
 }
 
+VkPipeline GraphicsPipeline::getPipeline() const {
+    return graphicsPipeline_;
+}
+
 // In order to create the pipeline, we need:
 // • Shader stages: the shader modules that define the functionality of the
 // programmable stages of the graphics pipeline

@@ -26,10 +26,9 @@ public:
   uint32_t getQueuesCreateInfoSize() const;
 
   bool hasValidFamilies(VkPhysicalDevice physicalDevice);
-
-private:
   QueueFamilyIndices findFamilies(const VkPhysicalDevice& device) const;
 
+private:
   VkQueue graphicsQueue_;
   VkQueue presentQueue_;
   VkSurfaceKHR vkSurface_;

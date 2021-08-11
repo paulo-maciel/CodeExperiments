@@ -94,7 +94,15 @@ VkSurfaceFormatKHR SwapChain::getFormat() const {
   return format_;
 }
 
-void SwapChain::createFrameBuffer(VkRenderPass renderPass) {
+std::vector<VkImageView> SwapChain::getImagesView() const {
+  return imagesView_;
+}
+
+std::vector<VkFramebuffer> SwapChain::getFrameBuffers() const {
+  return frameBuffers_;
+}
+
+void SwapChain::createFrameBuffers(VkRenderPass renderPass) {
     frameBuffers_.resize(imagesView_.size());
 
     for (size_t i = 0; i < imagesView_.size(); i++) {

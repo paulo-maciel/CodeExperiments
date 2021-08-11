@@ -26,6 +26,10 @@ public:
   VkPhysicalDevice getPhysicalDevice() const;
   VkDevice         getLogicalDevice() const;
 
+  std::shared_ptr<QueueSelector> getQueueSelector();
+  std::shared_ptr<SwapChain> getSwapChain();
+  std::shared_ptr<GraphicsPipeline> getGraphicsPipeline();
+
 private:
   void selectPhysical();
   int rateDevice(const VkPhysicalDevice& physicalDevice);
@@ -46,7 +50,7 @@ private:
   // TODO: Set the device features.
   VkPhysicalDeviceFeatures deviceFeatures_;
 
-  std::unique_ptr<QueueSelector> queueSelector_;
+  std::shared_ptr<QueueSelector> queueSelector_;
   std::shared_ptr<SwapChain> swapChain_;
   std::shared_ptr<GraphicsPipeline> graphicsPipeline_;
 

@@ -23,6 +23,8 @@ public:
   void createRenderPass();
   VkRenderPass getRenderPass() const;
 
+  VkPipeline getPipeline() const;
+
 private:
   void createShaderStages();
   VkShaderModule createShaderModule(const std::vector<char>& code);

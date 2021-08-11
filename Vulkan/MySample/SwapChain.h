@@ -30,8 +30,9 @@ public:
   VkSurfaceFormatKHR getFormat() const;
 
   std::vector<VkImageView> getImagesView() const;
+  std::vector<VkFramebuffer> getFrameBuffers() const;
 
-  void createFrameBuffer(VkRenderPass renderPass);
+  void createFrameBuffers(VkRenderPass renderPass);
 
 private:
   VkSurfaceFormatKHR selectSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const;
