@@ -3,10 +3,10 @@ VULKAN_SDK_PATH = $(VULKAN_SDK)
 
 CC = g++
 #CC = clang
-CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I/usr/local/include -I.
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I/usr/local/include -I.  -g -O0
 
 LDFLAGS = -L/usr/local/lib -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
-LDFLAGS += -lpthread -lm -g -O0
+LDFLAGS += -lpthread -lm
 
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

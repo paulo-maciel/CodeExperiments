@@ -15,6 +15,7 @@
 using namespace std;
 
 #define APP_SHORT_NAME "VulkanApp"
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
                                             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -267,15 +268,15 @@ void VulkanApp::drawFrame() {
     vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getInflightFences()[currentFrame_], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    VkSemaphore imageAvailableSemaphore = syncObjects->getImageAvailableSemaphores()[currentFrame_];
-    vkAcquireNextImageKHR(device_->getLogicalDevice(), device_->getSwapChain()->getSwapChain(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(device_->getLogicalDevice(), 
+                          device_->getSwapChain()->getSwapChain(), UINT64_MAX, 
+                          syncObjects->getImageAvailableSemaphores()[currentFrame_], 
+                          VK_NULL_HANDLE, &imageIndex);
 
-    auto imagesInFlight = syncObjects->getImagesInflight();
-    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
-        vkWaitForFences(device_->getLogicalDevice(), 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-        cout << "waited for fence" << endl;
+    if (syncObjects->getImagesInflight()[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getImagesInflight()[imageIndex], VK_TRUE, UINT64_MAX);
     }
-    imagesInFlight[imageIndex] = syncObjects->getInflightFences()[currentFrame_];
+    syncObjects->getImagesInflight()[imageIndex] = syncObjects->getInflightFences()[currentFrame_];
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -287,7 +288,7 @@ void VulkanApp::drawFrame() {
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = device_->getCommandPool()->getCommandBuffers();  //&commandBuffers[imageIndex];
+    submitInfo.pCommandBuffers = device_->getCommandPool()->getCommandBuffers();
 
     VkSemaphore signalSemaphores[] = {syncObjects->getRenderFinishedSemaphores()[currentFrame_]};
     submitInfo.signalSemaphoreCount = 1;
@@ -320,5 +321,5 @@ void VulkanApp::drawFrame() {
     presentInfo.pImageIndices = &imageIndex;
     vkQueuePresentKHR(device_->getQueueSelector()->getPresentQueue(), &presentInfo);
 
-    currentFrame_ = (currentFrame_ + 1) % maxFramesInFlight_;
+    currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }
