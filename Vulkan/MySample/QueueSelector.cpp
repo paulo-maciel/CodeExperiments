@@ -1,4 +1,5 @@
 #include <QueueSelector.h>
+#include <Device.h>
 
 #include <map>
 #include <iostream>
@@ -7,8 +8,9 @@
 
 using namespace std;
 
-QueueSelector::QueueSelector(VkSurfaceKHR vkSurface)
-: graphicsQueue_{}
+QueueSelector::QueueSelector(VkSurfaceKHR vkSurface, std::shared_ptr<Device> device)
+: device_(device)
+, graphicsQueue_{}
 , presentQueue_{}
 , vkSurface_(vkSurface)
 , queuePriority_(1.0f) { // TODO: Set the appropriate priority.
@@ -60,13 +62,9 @@ uint32_t QueueSelector::QueueFamilyIndices::value() {
     return graphicsFamily.value();
 }
 
-VkDeviceQueueCreateInfo *QueueSelector::getQueuesCreateInfo(VkPhysicalDevice physicalDevice, VkDevice device) {
+VkDeviceQueueCreateInfo *QueueSelector::getQueuesCreateInfo() {
     // Get a suitable queue family.  In this case, a graphics queue family.
-    auto familyIndexes = findFamilies(physicalDevice);
-
-    // Get the handles to the present and graphics queues.
-    // vkGetDeviceQueue(device, familyIndexes.presentFamily.value(), 0, &presentQueue_);
-    // vkGetDeviceQueue(device, familyIndexes.graphicsFamily.value(), 0, &graphicsQueue_);
+    auto familyIndexes = findFamilies(device_->getPhysicalDevice());
 
     std::set<uint32_t> uniqueQueueFamilies = {familyIndexes.graphicsFamily.value(), familyIndexes.presentFamily.value()};
 
@@ -84,6 +82,12 @@ VkDeviceQueueCreateInfo *QueueSelector::getQueuesCreateInfo(VkPhysicalDevice phy
 
 uint32_t QueueSelector::getQueuesCreateInfoSize() const {
   return queuesCreateInfo_.size();
+}
+
+void QueueSelector::cacheQueues(VkDevice device) {
+  auto familyIndexes = findFamilies(device_->getPhysicalDevice());
+  vkGetDeviceQueue(device, familyIndexes.graphicsFamily.value(), 0, &graphicsQueue_);
+  vkGetDeviceQueue(device, familyIndexes.presentFamily.value(), 0, &presentQueue_);
 }
 
 VkQueue QueueSelector::getGraphicsQueue() const {

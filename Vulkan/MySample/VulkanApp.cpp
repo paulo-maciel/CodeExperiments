@@ -16,8 +16,6 @@ using namespace std;
 
 #define APP_SHORT_NAME "VulkanApp"
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
                                             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -139,12 +137,15 @@ void VulkanApp::initVulkan() {
     device_ = make_shared<Device>(vkInstance_, vkSurface_);
     device_->create(validationLayers_);
 
+    maxFramesInFlight_ = device_->getSwapChain()->getBufferCount();
+
     cout << "Vulkan instance created." << endl;
 }
 
 void VulkanApp::update() {
     while(!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
+        drawFrame();
     }
 }
 
@@ -167,6 +168,7 @@ void VulkanApp::deInitGlfw() {
 }
 
 void VulkanApp::deInitVulkan() {
+
     // Destroy the device.
     device_->destroy();
     device_.reset();
@@ -260,20 +262,25 @@ VkResult VulkanApp::createDebugUtilsMessengerEXT(VkInstance instance,
 }
 
 void VulkanApp::drawFrame() {
-    vkWaitForFences(device_->getLogicalDevice(), 1, &inFlightFences_[currentFrame_], VK_TRUE, UINT64_MAX);
+    cout << "drawFrame" << endl << endl;
+    auto syncObjects = device_->getSyncObjects();
+    vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getInflightFences()[currentFrame_], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(device_->getLogicalDevice(), device_->getSwapChain()->getSwapChain(), UINT64_MAX, imageAvailableSemaphores_[currentFrame_], VK_NULL_HANDLE, &imageIndex);
+    VkSemaphore imageAvailableSemaphore = syncObjects->getImageAvailableSemaphores()[currentFrame_];
+    vkAcquireNextImageKHR(device_->getLogicalDevice(), device_->getSwapChain()->getSwapChain(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
-    if (imagesInFlight_[imageIndex] != VK_NULL_HANDLE) {
-        vkWaitForFences(device_->getLogicalDevice(), 1, &imagesInFlight_[imageIndex], VK_TRUE, UINT64_MAX);
+    auto imagesInFlight = syncObjects->getImagesInflight();
+    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(device_->getLogicalDevice(), 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+        cout << "waited for fence" << endl;
     }
-    imagesInFlight_[imageIndex] = inFlightFences_[currentFrame_];
+    imagesInFlight[imageIndex] = syncObjects->getInflightFences()[currentFrame_];
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_[currentFrame_]};
+    VkSemaphore waitSemaphores[] = {syncObjects->getImageAvailableSemaphores()[currentFrame_]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
@@ -282,13 +289,21 @@ void VulkanApp::drawFrame() {
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = device_->getCommandPool()->getCommandBuffers();  //&commandBuffers[imageIndex];
 
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores_[currentFrame_]};
+    VkSemaphore signalSemaphores[] = {syncObjects->getRenderFinishedSemaphores()[currentFrame_]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    vkResetFences(device_->getLogicalDevice(), 1, &inFlightFences_[currentFrame_]);
+    vkResetFences(device_->getLogicalDevice(), 1, &syncObjects->getInflightFences()[currentFrame_]);
 
-    if (vkQueueSubmit(device_->getQueueSelector()->getGraphicsQueue(), 1, &submitInfo, inFlightFences_[currentFrame_]) != VK_SUCCESS) {
+    auto graphicsQueue = device_->getQueueSelector()->getGraphicsQueue();
+    if (graphicsQueue == VK_NULL_HANDLE) {
+        cout << "ALERT: null graphics queue." << endl;
+    }
+    auto syncFence = syncObjects->getInflightFences()[currentFrame_];
+    if (syncFence == VK_NULL_HANDLE) {
+        cout << "ALERT: null fence." << endl;
+    }
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syncFence) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 
@@ -303,8 +318,7 @@ void VulkanApp::drawFrame() {
     presentInfo.pSwapchains = swapChains;
 
     presentInfo.pImageIndices = &imageIndex;
-
     vkQueuePresentKHR(device_->getQueueSelector()->getPresentQueue(), &presentInfo);
 
-    currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
+    currentFrame_ = (currentFrame_ + 1) % maxFramesInFlight_;
 }

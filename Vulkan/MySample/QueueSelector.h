@@ -2,16 +2,19 @@
 
 #include <vulkan/vulkan.h>
 
+
 #include <experimental/optional>
 #include <vector>
+#include <memory>
+
+class Device;
 
 #define NDEBUG 0
 
 class QueueSelector {
 public:
-  friend class Device;
   
-  QueueSelector(VkSurfaceKHR vkSurface);
+  QueueSelector(VkSurfaceKHR vkSurface, std::shared_ptr<Device> device);
   ~QueueSelector();
 
   struct QueueFamilyIndices {
@@ -22,12 +25,13 @@ public:
     uint32_t value();
   };
 
-  VkDeviceQueueCreateInfo *getQueuesCreateInfo(VkPhysicalDevice physicalDevice, VkDevice device);
+  VkDeviceQueueCreateInfo *getQueuesCreateInfo();
   uint32_t getQueuesCreateInfoSize() const;
 
   bool hasValidFamilies(VkPhysicalDevice physicalDevice);
   QueueFamilyIndices findFamilies(const VkPhysicalDevice& device) const;
 
+  void cacheQueues(VkDevice device);
   VkQueue getGraphicsQueue() const;
   VkQueue getPresentQueue() const;
 
@@ -37,5 +41,7 @@ private:
   VkSurfaceKHR vkSurface_;
   std::vector<VkDeviceQueueCreateInfo> queuesCreateInfo_;
   float queuePriority_;
+
+  std::shared_ptr<Device> device_;
 
 };

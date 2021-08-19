@@ -16,11 +16,10 @@ Device::Device(VkInstance vkInstance, VkSurfaceKHR vkSurface)
 
 Device::~Device() {
     cout << "Device destructor called." << endl;
-    vkDestroyDevice(device_, nullptr);
 }
 
 void Device::create(const std::vector<const char*>& validationLayers) {
-  queueSelector_ = std::make_shared<QueueSelector>(vkSurface_);
+  queueSelector_ = std::make_shared<QueueSelector>(vkSurface_, getPtr());
   swapChain_ = std::make_shared<SwapChain>(vkSurface_);
 
   selectPhysical();
@@ -37,8 +36,15 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass());
 
   // Create the command pool.
-  commandPool_ = std::make_shared<CommandPool>(getptr());
+  commandPool_ = std::make_shared<CommandPool>(getPtr());
   commandPool_->create();
+
+  commandPool_->createCommandBuffers();
+
+  syncObjects_ = std::make_unique<SyncObjects>(getPtr());
+  syncObjects_->create();
+
+  cout << "Device created." << endl;
 }
 
 void Device::selectPhysical() {
@@ -80,7 +86,7 @@ void Device::createLogical(const std::vector<const char*>& validationLayers) {
     // Specify our graphics queue
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = queueSelector_->getQueuesCreateInfo(physicalDevice_, device_);
+    createInfo.pQueueCreateInfos = queueSelector_->getQueuesCreateInfo();
     createInfo.queueCreateInfoCount = queueSelector_->getQueuesCreateInfoSize();
     createInfo.pEnabledFeatures = &deviceFeatures_;
 
@@ -99,7 +105,11 @@ void Device::createLogical(const std::vector<const char*>& validationLayers) {
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
+
     cout << "Created the logical device." << endl;
+
+    // Cache the graphics and present queues
+    queueSelector_->cacheQueues(device_);
 }
 
 int Device::rateDevice(const VkPhysicalDevice& physicalDevice) {
@@ -186,7 +196,14 @@ std::shared_ptr<CommandPool> Device::getCommandPool() const {
     return commandPool_;
 }
 
+std::shared_ptr<SyncObjects> Device::getSyncObjects() const {
+    return syncObjects_;
+}
+
 void Device::destroy() {
+    cout << "Destroying the sync objects. " << endl;
+    syncObjects_->destroy();
+
     cout << "Destroying the command pool. " << endl;
     commandPool_->destroy();
 
@@ -198,4 +215,6 @@ void Device::destroy() {
 
     cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
     vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);
+
+    vkDestroyDevice(device_, nullptr);
 }

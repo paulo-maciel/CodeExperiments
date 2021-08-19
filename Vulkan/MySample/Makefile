@@ -12,7 +12,7 @@ LDFLAGS += -lpthread -lm -g -O0
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 OBJS = MySample.o VulkanApp.o Device.o QueueSelector.o SwapChain.o GraphicsPipeline.o \
-       CommandPool.o
+       CommandPool.o SyncObjects.o
 
 myvulkan: $(OBJS)
 	g++ $(CFLAGS) -o myvulkan $(OBJS) $(LDFLAGS)

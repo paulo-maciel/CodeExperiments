@@ -6,6 +6,7 @@
 #include <SwapChain.h>
 #include <GraphicsPipeline.h>
 #include <CommandPool.h>
+#include <SyncObjects.h>
 
 #include <iostream>
 #include <vector>
@@ -21,7 +22,7 @@ public:
   Device(VkInstance vkInstance, VkSurfaceKHR vkSurface);
   ~Device();
 
-  std::shared_ptr<Device> getptr() {
+  std::shared_ptr<Device> getPtr() {
       return shared_from_this();
   }
 
@@ -35,6 +36,7 @@ public:
   std::shared_ptr<SwapChain> getSwapChain() const;
   std::shared_ptr<GraphicsPipeline> getGraphicsPipeline() const;
   std::shared_ptr<CommandPool> getCommandPool() const;
+  std::shared_ptr<SyncObjects> getSyncObjects() const;
 
 private:
   void selectPhysical();
@@ -60,6 +62,7 @@ private:
   std::shared_ptr<SwapChain> swapChain_;
   std::shared_ptr<GraphicsPipeline> graphicsPipeline_;
   std::shared_ptr<CommandPool> commandPool_;
+  std::shared_ptr<SyncObjects> syncObjects_;
 
   const std::vector<const char*> requiredExtensions_;
 };

@@ -34,6 +34,7 @@ public:
   std::vector<VkFramebuffer> getFrameBuffers() const;
 
   void createFrameBuffers(VkRenderPass renderPass);
+  uint32_t getBufferCount() const;
 
 private:
   VkSurfaceFormatKHR selectSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const;
@@ -45,6 +46,7 @@ private:
   VkSurfaceKHR vkSurface_;
   VkSwapchainKHR vkSwapChain_;
   VkDevice device_;
+  uint32_t bufferCount_;
 
   VkSurfaceFormatKHR format_;
   VkPresentModeKHR presentMode_;

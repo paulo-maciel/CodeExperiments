@@ -125,6 +125,10 @@ void SwapChain::createFrameBuffers(VkRenderPass renderPass) {
     }
 }
 
+uint32_t SwapChain::getBufferCount() const {
+  return bufferCount_;
+}
+
 bool SwapChain::create(Device *device, QueueSelector::QueueFamilyIndices familyIndexes) {
     auto physicalDevice = device->getPhysicalDevice();
     device_ = device->getLogicalDevice();
@@ -138,18 +142,18 @@ bool SwapChain::create(Device *device, QueueSelector::QueueFamilyIndices familyI
 
     // Decide how many images to have in the swap chain.  To avoid waiting on the driver, 
     // request at least 1 more than the minimum.
-    uint32_t imageCount = swapChainDetails.capabilities.minImageCount + 1;
+    bufferCount_ = swapChainDetails.capabilities.minImageCount + 1;
 
     // Make sure to not exceed the maximum number of images.  Note that 0 means 
     // that there is no maximum:
-    if (swapChainDetails.capabilities.maxImageCount > 0 && imageCount > swapChainDetails.capabilities.maxImageCount) {
-        imageCount = swapChainDetails.capabilities.maxImageCount;
+    if (swapChainDetails.capabilities.maxImageCount > 0 && bufferCount_ > swapChainDetails.capabilities.maxImageCount) {
+        bufferCount_ = swapChainDetails.capabilities.maxImageCount;
     }
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = vkSurface_;
-    createInfo.minImageCount = imageCount;
+    createInfo.minImageCount = bufferCount_;
     createInfo.imageFormat = format_.format;
     createInfo.imageColorSpace = format_.colorSpace;
     createInfo.imageExtent = extent2D_;
@@ -197,15 +201,15 @@ bool SwapChain::create(Device *device, QueueSelector::QueueFamilyIndices familyI
       throw std::runtime_error("failed to create swap chain!");
     }
 
-    // Cache the handles to the swap chain images.  Note the imageCount may be
+    // Cache the handles to the swap chain images.  Note the bufferCount_ may be
     // higher than the minimum requested.
-    vkGetSwapchainImagesKHR(device_, vkSwapChain_, &imageCount, nullptr);
-    images_.resize(imageCount);
-    vkGetSwapchainImagesKHR(device_, vkSwapChain_, &imageCount, images_.data());
+    vkGetSwapchainImagesKHR(device_, vkSwapChain_, &bufferCount_, nullptr);
+    images_.resize(bufferCount_);
+    vkGetSwapchainImagesKHR(device_, vkSwapChain_, &bufferCount_, images_.data());
 
     // Create the associated image views
-    imagesView_.resize(imageCount);
-    for(auto i = 0; i < imageCount; ++i) {
+    imagesView_.resize(bufferCount_);
+    for(auto i = 0; i < bufferCount_; ++i) {
         VkImageViewCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         createInfo.image = images_[i];
@@ -229,7 +233,7 @@ bool SwapChain::create(Device *device, QueueSelector::QueueFamilyIndices familyI
         }
     }
 
-    cout << "Created a swap chain containing " << imageCount << " images." << endl;
+    cout << "Created a swap chain containing " << bufferCount_ << " images." << endl;
     return true;
 }
 

@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 #include <stdexcept>
 #include <cstdlib>
@@ -58,9 +59,6 @@ private:
   VkSurfaceKHR vkSurface_;
   std::shared_ptr<Device> device_;
 
-  std::vector<VkFence> inFlightFences_;
-  std::vector<VkFence> imagesInFlight_;
   uint32_t currentFrame_;
-  std::vector<VkSemaphore> imageAvailableSemaphores_;
-  std::vector<VkSemaphore> renderFinishedSemaphores_;
+  uint8_t maxFramesInFlight_;
 };
