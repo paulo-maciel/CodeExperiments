@@ -28,6 +28,7 @@ public:
   Details getDetails(VkPhysicalDevice device) const;
   VkExtent2D getExtent2D() const;
   VkSurfaceFormatKHR getFormat() const;
+  VkSwapchainKHR getSwapChain() const;
 
   std::vector<VkImageView> getImagesView() const;
   std::vector<VkFramebuffer> getFrameBuffers() const;

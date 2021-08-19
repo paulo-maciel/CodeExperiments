@@ -85,3 +85,11 @@ VkDeviceQueueCreateInfo *QueueSelector::getQueuesCreateInfo(VkPhysicalDevice phy
 uint32_t QueueSelector::getQueuesCreateInfoSize() const {
   return queuesCreateInfo_.size();
 }
+
+VkQueue QueueSelector::getGraphicsQueue() const {
+  return graphicsQueue_;
+}
+
+VkQueue QueueSelector::getPresentQueue() const {
+  return presentQueue_;
+}

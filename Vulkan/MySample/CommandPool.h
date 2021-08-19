@@ -21,6 +21,9 @@ public:
   void destroy();
 
   void createCommandBuffers();
+  VkCommandBuffer *getCommandBuffers();
+
+  VkCommandPool getCommandPool() const;
 
 private:
   std::shared_ptr<Device> device_;

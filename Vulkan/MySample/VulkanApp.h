@@ -26,6 +26,7 @@ public:
   void init();
   void run();
   void deInit();
+  void drawFrame();
 
 private:
   bool checkValidationLayerSupport();
@@ -56,4 +57,10 @@ private:
   // For example, it needs the HWND and HMODULE handles on Windows.
   VkSurfaceKHR vkSurface_;
   std::shared_ptr<Device> device_;
+
+  std::vector<VkFence> inFlightFences_;
+  std::vector<VkFence> imagesInFlight_;
+  uint32_t currentFrame_;
+  std::vector<VkSemaphore> imageAvailableSemaphores_;
+  std::vector<VkSemaphore> renderFinishedSemaphores_;
 };

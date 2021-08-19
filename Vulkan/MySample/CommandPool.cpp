@@ -49,6 +49,7 @@ void CommandPool::create() {
     }
 }
 
+// Record draw command pass.
 void CommandPool::createCommandBuffers() {
     commandBuffers_.resize(device_->getSwapChain()->getFrameBuffers().size());
 
@@ -85,6 +86,7 @@ void CommandPool::createCommandBuffers() {
 
             vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipeline());
 
+            // Draw 3 vertices with only 1 instance with offset for the vertices and instance being 0.
             vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
 
         vkCmdEndRenderPass(commandBuffers_[i]);
@@ -93,4 +95,12 @@ void CommandPool::createCommandBuffers() {
             throw std::runtime_error("failed to record command buffer!");
         }
     }
+}
+
+VkCommandPool CommandPool::getCommandPool() const {
+  return commandPool_;
+}
+
+VkCommandBuffer *CommandPool::getCommandBuffers() {
+  return commandBuffers_.data();
 }

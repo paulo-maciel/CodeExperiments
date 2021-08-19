@@ -16,6 +16,8 @@ using namespace std;
 
 #define APP_SHORT_NAME "VulkanApp"
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
                                             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -41,6 +43,7 @@ VulkanApp::VulkanApp()
   : validationLayers_{"VK_LAYER_KHRONOS_validation"}
 #endif 
   , vkSurface_{}
+  , currentFrame_(0)
 {
 }
 
@@ -254,4 +257,54 @@ VkResult VulkanApp::createDebugUtilsMessengerEXT(VkInstance instance,
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, 
                                                                           "vkCreateDebugUtilsMessengerEXT"); 
     return func != nullptr ? func(instance, pCreateInfo, pAllocator, pDebugMessenger) : VK_ERROR_EXTENSION_NOT_PRESENT;
+}
+
+void VulkanApp::drawFrame() {
+    vkWaitForFences(device_->getLogicalDevice(), 1, &inFlightFences_[currentFrame_], VK_TRUE, UINT64_MAX);
+
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(device_->getLogicalDevice(), device_->getSwapChain()->getSwapChain(), UINT64_MAX, imageAvailableSemaphores_[currentFrame_], VK_NULL_HANDLE, &imageIndex);
+
+    if (imagesInFlight_[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(device_->getLogicalDevice(), 1, &imagesInFlight_[imageIndex], VK_TRUE, UINT64_MAX);
+    }
+    imagesInFlight_[imageIndex] = inFlightFences_[currentFrame_];
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_[currentFrame_]};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = device_->getCommandPool()->getCommandBuffers();  //&commandBuffers[imageIndex];
+
+    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores_[currentFrame_]};
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    vkResetFences(device_->getLogicalDevice(), 1, &inFlightFences_[currentFrame_]);
+
+    if (vkQueueSubmit(device_->getQueueSelector()->getGraphicsQueue(), 1, &submitInfo, inFlightFences_[currentFrame_]) != VK_SUCCESS) {
+        throw std::runtime_error("failed to submit draw command buffer!");
+    }
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+
+    VkSwapchainKHR swapChains[] = {device_->getSwapChain()->getSwapChain()};
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+
+    presentInfo.pImageIndices = &imageIndex;
+
+    vkQueuePresentKHR(device_->getQueueSelector()->getPresentQueue(), &presentInfo);
+
+    currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }

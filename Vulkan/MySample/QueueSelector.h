@@ -28,6 +28,9 @@ public:
   bool hasValidFamilies(VkPhysicalDevice physicalDevice);
   QueueFamilyIndices findFamilies(const VkPhysicalDevice& device) const;
 
+  VkQueue getGraphicsQueue() const;
+  VkQueue getPresentQueue() const;
+
 private:
   VkQueue graphicsQueue_;
   VkQueue presentQueue_;

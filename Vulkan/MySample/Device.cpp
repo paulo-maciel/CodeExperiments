@@ -170,16 +170,20 @@ VkDevice Device::getLogicalDevice() const {
   return device_;
 }
 
-std::shared_ptr<QueueSelector> Device::getQueueSelector() {
+std::shared_ptr<QueueSelector> Device::getQueueSelector() const {
   return queueSelector_;
 }
 
-std::shared_ptr<SwapChain> Device::getSwapChain() {
+std::shared_ptr<SwapChain> Device::getSwapChain() const {
   return swapChain_;
 }
 
-std::shared_ptr<GraphicsPipeline> Device::getGraphicsPipeline() {
+std::shared_ptr<GraphicsPipeline> Device::getGraphicsPipeline() const {
     return graphicsPipeline_;
+}
+
+std::shared_ptr<CommandPool> Device::getCommandPool() const {
+    return commandPool_;
 }
 
 void Device::destroy() {

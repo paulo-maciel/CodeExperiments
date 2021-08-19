@@ -246,3 +246,7 @@ void SwapChain::destroy() {
 
     vkDestroySwapchainKHR(device_, vkSwapChain_, nullptr);
 }
+
+VkSwapchainKHR SwapChain::getSwapChain() const {
+    return vkSwapChain_;
+}

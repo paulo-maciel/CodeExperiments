@@ -31,9 +31,10 @@ public:
   VkPhysicalDevice getPhysicalDevice() const;
   VkDevice         getLogicalDevice() const;
 
-  std::shared_ptr<QueueSelector> getQueueSelector();
-  std::shared_ptr<SwapChain> getSwapChain();
-  std::shared_ptr<GraphicsPipeline> getGraphicsPipeline();
+  std::shared_ptr<QueueSelector> getQueueSelector() const;
+  std::shared_ptr<SwapChain> getSwapChain() const;
+  std::shared_ptr<GraphicsPipeline> getGraphicsPipeline() const;
+  std::shared_ptr<CommandPool> getCommandPool() const;
 
 private:
   void selectPhysical();
