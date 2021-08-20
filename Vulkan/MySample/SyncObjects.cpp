@@ -19,8 +19,8 @@ SyncObjects::~SyncObjects() {
 }
 
 bool SyncObjects::create() {
-    imageAvailableSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
+    imageAcquiredSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
+    doneRenderingSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
     inFlightFences_.resize(MAX_FRAMES_IN_FLIGHT);
     imagesInFlight_.resize(device_->getSwapChain()->getBufferCount(), VK_NULL_HANDLE);
 
@@ -32,8 +32,8 @@ bool SyncObjects::create() {
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(device_->getLogicalDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores_[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(device_->getLogicalDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores_[i]) != VK_SUCCESS ||
+        if (vkCreateSemaphore(device_->getLogicalDevice(), &semaphoreInfo, nullptr, &imageAcquiredSemaphores_[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(device_->getLogicalDevice(), &semaphoreInfo, nullptr, &doneRenderingSemaphores_[i]) != VK_SUCCESS ||
             vkCreateFence(device_->getLogicalDevice(), &fenceInfo, nullptr, &inFlightFences_[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
             return false;
@@ -46,18 +46,18 @@ bool SyncObjects::create() {
 
 bool SyncObjects::destroy() {
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(device_->getLogicalDevice(), renderFinishedSemaphores_[i], nullptr);
-        vkDestroySemaphore(device_->getLogicalDevice(), imageAvailableSemaphores_[i], nullptr);
+        vkDestroySemaphore(device_->getLogicalDevice(), doneRenderingSemaphores_[i], nullptr);
+        vkDestroySemaphore(device_->getLogicalDevice(), imageAcquiredSemaphores_[i], nullptr);
         vkDestroyFence(device_->getLogicalDevice(), inFlightFences_[i], nullptr);
     }
 }
 
 std::vector<VkSemaphore> &SyncObjects::getImageAvailableSemaphores() {
-  return imageAvailableSemaphores_;
+  return imageAcquiredSemaphores_;
 }
 
 std::vector<VkSemaphore> &SyncObjects::getRenderFinishedSemaphores() {
-  return renderFinishedSemaphores_;
+  return doneRenderingSemaphores_;
 }
 
 std::vector<VkFence> &SyncObjects::getInflightFences() {

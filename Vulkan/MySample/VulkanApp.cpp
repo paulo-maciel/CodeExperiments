@@ -148,6 +148,8 @@ void VulkanApp::update() {
         glfwPollEvents();
         drawFrame();
     }
+
+    vkDeviceWaitIdle(device_->getLogicalDevice());
 }
 
 void VulkanApp::deInit() {
@@ -262,34 +264,45 @@ VkResult VulkanApp::createDebugUtilsMessengerEXT(VkInstance instance,
     return func != nullptr ? func(instance, pCreateInfo, pAllocator, pDebugMessenger) : VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
+/*
+• Acquire an image from the swap chain
+• Execute the command buffer with that image as attachment in the framebuffer
+• Return the image to the swap chain for presentation
+*/
 void VulkanApp::drawFrame() {
     cout << "drawFrame" << endl << endl;
     auto syncObjects = device_->getSyncObjects();
     vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getInflightFences()[currentFrame_], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
+    // Acquire an image from the swap chain
     vkAcquireNextImageKHR(device_->getLogicalDevice(), 
                           device_->getSwapChain()->getSwapChain(), UINT64_MAX, 
                           syncObjects->getImageAvailableSemaphores()[currentFrame_], 
                           VK_NULL_HANDLE, &imageIndex);
 
     if (syncObjects->getImagesInflight()[imageIndex] != VK_NULL_HANDLE) {
-        vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getImagesInflight()[imageIndex], VK_TRUE, UINT64_MAX);
+      vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getImagesInflight()[imageIndex], VK_TRUE, UINT64_MAX);
     }
     syncObjects->getImagesInflight()[imageIndex] = syncObjects->getInflightFences()[currentFrame_];
 
+    // Passed the fence, so can start drawing.  Execute the command buffer.
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     VkSemaphore waitSemaphores[] = {syncObjects->getImageAvailableSemaphores()[currentFrame_]};
+
+    // Another option would have been: VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
 
+    // Add the command buffer to execute to the submitInfo buffer to execute.
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = device_->getCommandPool()->getCommandBuffers();
 
+    // Use a semafore to signal it is done rendering.
     VkSemaphore signalSemaphores[] = {syncObjects->getRenderFinishedSemaphores()[currentFrame_]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
@@ -304,13 +317,19 @@ void VulkanApp::drawFrame() {
     if (syncFence == VK_NULL_HANDLE) {
         cout << "ALERT: null fence." << endl;
     }
+
+    // The last parameter references an optional fence that will be signaled when the 
+    // command buffers finish execution. We’re using semaphores for synchronization, 
+    // so we could just pass a VK_NULL_HANDLE.
     if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syncFence) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 
+    // Prepare for presentation/swap.
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
+    // The present wait on a end of rendering semaphore.
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
@@ -319,6 +338,7 @@ void VulkanApp::drawFrame() {
     presentInfo.pSwapchains = swapChains;
 
     presentInfo.pImageIndices = &imageIndex;
+    // Present will wait on the end of rendering semaphore before it can present/swap.
     vkQueuePresentKHR(device_->getQueueSelector()->getPresentQueue(), &presentInfo);
 
     currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;

@@ -94,6 +94,22 @@ void GraphicsPipeline::createRenderPass() {
     //   but for which the data must be preserved.
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    VkSubpassDependency dependency{};
+    // The special value VK_SUBPASS_EXTERNAL refers to the implicit subpass before or 
+    // after the render pass depending on whether it is specified in srcSubpass
+    // or dstSubpass.
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+
+    // The next two fields specify the operations to wait on and the stages in which
+    // these operations occur. We need to wait for the swap chain to finish reading
+    // from the image before we can access it. This can be accomplished by waiting
+    // on the color attachment output stage itself.
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     // Now, create the renderpass.
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -101,10 +117,14 @@ void GraphicsPipeline::createRenderPass() {
     renderPassInfo.pAttachments = &colorAttachment;
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     if (vkCreateRenderPass(device_, &renderPassInfo, nullptr, &renderPass_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }
+
+    cout << "Renderpass created." << endl << endl;
 }
 
 VkRenderPass GraphicsPipeline::getRenderPass() const {
