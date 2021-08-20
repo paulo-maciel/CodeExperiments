@@ -281,9 +281,12 @@ void VulkanApp::drawFrame() {
                           syncObjects->getImageAvailableSemaphores()[currentFrame_], 
                           VK_NULL_HANDLE, &imageIndex);
 
+    // Check if a previous frame is using this image (i.e. there is its fence to wait on)
     if (syncObjects->getImagesInflight()[imageIndex] != VK_NULL_HANDLE) {
       vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getImagesInflight()[imageIndex], VK_TRUE, UINT64_MAX);
     }
+
+    // Mark the image as now being in use by this frame
     syncObjects->getImagesInflight()[imageIndex] = syncObjects->getInflightFences()[currentFrame_];
 
     // Passed the fence, so can start drawing.  Execute the command buffer.
@@ -307,6 +310,7 @@ void VulkanApp::drawFrame() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
+    // Return the fences to an unsignaled state.
     vkResetFences(device_->getLogicalDevice(), 1, &syncObjects->getInflightFences()[currentFrame_]);
 
     auto graphicsQueue = device_->getQueueSelector()->getGraphicsQueue();

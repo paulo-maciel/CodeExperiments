@@ -29,6 +29,9 @@ bool SyncObjects::create() {
 
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+    // Need to create the fence in a signaled state otherwise when
+    // drawFrame gets called for the first time,it will wait forever.
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
