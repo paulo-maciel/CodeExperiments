@@ -1,21 +1,21 @@
 
 VULKAN_SDK_PATH = $(VULKAN_SDK)
 
-CC = g++
-#CC = clang
-CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I/usr/local/include -I.  -g -O0
+CXX = g++
+#CXX = clang
+CXXFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I/usr/local/include -I.  -g -O0
 
 LDFLAGS = -L/usr/local/lib -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 LDFLAGS += -lpthread -lm
 
 %.o: %.cpp $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 OBJS = MySample.o VulkanApp.o Device.o QueueSelector.o SwapChain.o GraphicsPipeline.o \
        CommandPool.o SyncObjects.o
 
 myvulkan: $(OBJS)
-	g++ $(CFLAGS) -o myvulkan $(OBJS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o myvulkan $(OBJS) $(LDFLAGS)
 
 .PHONY: test clean
 
