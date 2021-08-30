@@ -303,7 +303,7 @@ void VulkanApp::drawFrame() {
 
     // Add the command buffer to execute to the submitInfo buffer to execute.
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = device_->getCommandPool()->getCommandBuffers();
+    submitInfo.pCommandBuffers = &(device_->getCommandPool()->getCommandBuffers()[imageIndex]);
 
     // Use a semafore to signal it is done rendering.
     VkSemaphore signalSemaphores[] = {syncObjects->getRenderFinishedSemaphores()[currentFrame_]};
