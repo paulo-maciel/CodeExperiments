@@ -12,6 +12,8 @@
 
 #define NDEBUG 0
 
+class VertexBuffer;
+
 class CommandPool {
 public:
   CommandPool(std::shared_ptr<Device> device);
@@ -20,7 +22,7 @@ public:
   void create();
   void destroy();
 
-  void createCommandBuffers();
+  void createCommandBuffers(std::shared_ptr<VertexBuffer> vertexBuffer);
   VkCommandBuffer *getCommandBuffers();
 
   VkCommandPool getCommandPool() const;

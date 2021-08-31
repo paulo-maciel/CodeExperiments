@@ -50,7 +50,7 @@ void CommandPool::create() {
 }
 
 // Record draw command pass.
-void CommandPool::createCommandBuffers() {
+void CommandPool::createCommandBuffers(std::shared_ptr<VertexBuffer> vertexBuffer) {
     commandBuffers_.resize(device_->getSwapChain()->getFrameBuffers().size());
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -86,13 +86,18 @@ void CommandPool::createCommandBuffers() {
 
             vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipeline());
 
+            VkBuffer vertexBuffers[] = {vertexBuffer->getVkBuffer()};
+            VkDeviceSize offsets[] = {0};
+            vkCmdBindVertexBuffers(commandBuffers_[i], 0, 1, vertexBuffers, offsets);
+
             // Draw 3 vertices with only 1 instance with offset for the vertices and instance being 0.
-            vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
+            vkCmdDraw(commandBuffers_[i], static_cast<uint32_t>(vertexBuffer->getVertices().size()), 1, 0, 0);
 
-        vkCmdEndRenderPass(commandBuffers_[i]);
+            vkCmdEndRenderPass(commandBuffers_[i]);
 
-        if (vkEndCommandBuffer(commandBuffers_[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to record command buffer!");
+        if (vkEndCommandBuffer(commandBuffers_[i]) != VK_SUCCESS)
+        {
+          throw std::runtime_error("failed to record command buffer!");
         }
     }
 }

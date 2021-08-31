@@ -35,11 +35,18 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // Create the frame buffers.
   swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass());
 
-  // Create the command pool.
+  // Create the vertex buffer
+  const std::vector<VertexBuffer::Vertex> vertices = {
+      {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+      {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+      {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+  vertexBuffer_ = std::make_unique<VertexBuffer>(getPtr(), vertices);
+  vertexBuffer_->create();
+
+  // Create the command pool and the command buffers.
   commandPool_ = std::make_shared<CommandPool>(getPtr());
   commandPool_->create();
-
-  commandPool_->createCommandBuffers();
+  commandPool_->createCommandBuffers(vertexBuffer_);
 
   syncObjects_ = std::make_unique<SyncObjects>(getPtr());
   syncObjects_->create();
@@ -206,6 +213,9 @@ void Device::destroy() {
 
     cout << "Destroying the command pool. " << endl;
     commandPool_->destroy();
+
+    cout << "Destroying the vertex buffer. " << endl;
+    vertexBuffer_->destroy();
 
     cout << "Destroying Vulkan pipeline. " << endl;
     graphicsPipeline_->destroy();

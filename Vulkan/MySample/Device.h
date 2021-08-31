@@ -7,6 +7,7 @@
 #include <GraphicsPipeline.h>
 #include <CommandPool.h>
 #include <SyncObjects.h>
+#include <VertexBuffer.h>
 
 #include <iostream>
 #include <vector>
@@ -63,6 +64,7 @@ private:
   std::shared_ptr<GraphicsPipeline> graphicsPipeline_;
   std::shared_ptr<CommandPool> commandPool_;
   std::shared_ptr<SyncObjects> syncObjects_;
+  std::shared_ptr<VertexBuffer> vertexBuffer_;
 
   const std::vector<const char*> requiredExtensions_;
 };

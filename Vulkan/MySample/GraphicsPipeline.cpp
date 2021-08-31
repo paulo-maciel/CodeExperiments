@@ -1,5 +1,7 @@
 #include <GraphicsPipeline.h>
 
+#include <VertexBuffer.h>
+
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -7,6 +9,7 @@
 #include <set>
 
 using namespace std;
+using Vertex = VertexBuffer::Vertex;
 
 GraphicsPipeline::GraphicsPipeline(VkDevice device, std::shared_ptr<SwapChain> swapChain)
 : numStages_(2)
@@ -206,8 +209,14 @@ void GraphicsPipeline::createShaderStages() {
 void GraphicsPipeline::createPipeline() {
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;  // TODO: For now, the vertices are hardcoded in the shader.
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;// TODO: For now, the colors are hardcoded in the shader.
+
+    auto bindingDescription = Vertex::getBindingDescription();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount =
+        static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     // Describes the  kind of geometry to draw from the vertices and if primitive restart
     // should be enabled.

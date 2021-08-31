@@ -270,7 +270,7 @@ VkResult VulkanApp::createDebugUtilsMessengerEXT(VkInstance instance,
 • Return the image to the swap chain for presentation
 */
 void VulkanApp::drawFrame() {
-    cout << "drawFrame" << endl << endl;
+
     auto syncObjects = device_->getSyncObjects();
     vkWaitForFences(device_->getLogicalDevice(), 1, &syncObjects->getInflightFences()[currentFrame_], VK_TRUE, UINT64_MAX);
 
