@@ -35,17 +35,19 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // Create the frame buffers.
   swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass());
 
+  // Create the command pool and the command buffers.
+  commandPool_ = std::make_shared<CommandPool>(getPtr());
+  commandPool_->create();
+
   // Create the vertex buffer
   const std::vector<VertexBuffer::Vertex> vertices = {
       {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
       {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
       {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
   vertexBuffer_ = std::make_unique<VertexBuffer>(getPtr(), vertices);
-  vertexBuffer_->create();
+  vertexBuffer_->create(commandPool_->getCommandPool(), queueSelector_->getGraphicsQueue());
 
-  // Create the command pool and the command buffers.
-  commandPool_ = std::make_shared<CommandPool>(getPtr());
-  commandPool_->create();
+  // Create the command buffers.
   commandPool_->createCommandBuffers(vertexBuffer_);
 
   syncObjects_ = std::make_unique<SyncObjects>(getPtr());

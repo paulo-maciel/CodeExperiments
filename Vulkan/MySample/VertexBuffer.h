@@ -26,19 +26,27 @@ public:
     static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
   };
 
-  bool create();
+  bool create(VkCommandPool commandPool, VkQueue graphicsQueue);
   void destroy();
+
+  // Create a single vertex buffer
+  void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
+
+  // Copy one buffer (CPU/staging) to another GPU buffer.
+  void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
   VkBuffer getVkBuffer() const;
   std::vector<VertexBuffer::Vertex> getVertices() const;
 
-private:
-  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+  private:
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-private:
-  const std::vector<Vertex> vertices_;
+  private:
+    const std::vector<Vertex> vertices_;
 
-  std::shared_ptr<Device> device_;
-  VkBuffer vertexBuffer_;
-  VkDeviceMemory vertexBufferMemory_;
-};
+    std::shared_ptr<Device> device_;
+    VkBuffer vertexBuffer_;
+    VkDeviceMemory vertexBufferMemory_;
+    VkCommandPool commandPool_;
+    VkQueue graphicsQueue_;
+  };
