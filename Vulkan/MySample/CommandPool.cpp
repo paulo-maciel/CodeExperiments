@@ -89,9 +89,10 @@ void CommandPool::createCommandBuffers(std::shared_ptr<VertexBuffer> vertexBuffe
             VkBuffer vertexBuffers[] = {vertexBuffer->getVkBuffer()};
             VkDeviceSize offsets[] = {0};
             vkCmdBindVertexBuffers(commandBuffers_[i], 0, 1, vertexBuffers, offsets);
+            vkCmdBindIndexBuffer(commandBuffers_[i], vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
-            // Draw 3 vertices with only 1 instance with offset for the vertices and instance being 0.
-            vkCmdDraw(commandBuffers_[i], static_cast<uint32_t>(vertexBuffer->getVertices().size()), 1, 0, 0);
+              // Draw using indices.
+              vkCmdDrawIndexed(commandBuffers_[i], static_cast<uint32_t>(vertexBuffer->getIndices().size()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(commandBuffers_[i]);
 

@@ -32,9 +32,10 @@ std::array<VkVertexInputAttributeDescription, 2> VertexBuffer::Vertex::getAttrib
   return attributeDescriptions;
 }
 
-VertexBuffer::VertexBuffer(std::shared_ptr<Device> device, const std::vector<Vertex> &vertices)
-  : device_(device)
-  , vertices_(vertices) {
+VertexBuffer::VertexBuffer(std::shared_ptr<Device> device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> indices)
+  : device_(device) 
+  , vertices_(vertices)
+  , indices_(indices) {
 }
 
 VertexBuffer::~VertexBuffer() {
@@ -68,12 +69,18 @@ bool VertexBuffer::create(VkCommandPool commandPool, VkQueue graphicsQueue)
   vkDestroyBuffer(device_->getLogicalDevice(), stagingBuffer, nullptr);
   vkFreeMemory(device_->getLogicalDevice(), stagingBufferMemory, nullptr);
 
+  // Create the index buffer.
+  createIndexBuffer();
+
   return true;
 }
 
 void VertexBuffer::destroy() {
   vkDestroyBuffer(device_->getLogicalDevice(), vertexBuffer_, nullptr);
   vkFreeMemory(device_->getLogicalDevice(), vertexBufferMemory_, nullptr);
+
+  vkDestroyBuffer(device_->getLogicalDevice(), indexBuffer_, nullptr);
+  vkFreeMemory(device_->getLogicalDevice(), indexBufferMemory_, nullptr);
 }
 
 uint32_t VertexBuffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -95,6 +102,14 @@ VkBuffer VertexBuffer::getVkBuffer() const {
 
 std::vector<VertexBuffer::Vertex> VertexBuffer::getVertices() const {
   return vertices_;
+}
+
+VkBuffer VertexBuffer::getIndexBuffer() const {
+  return indexBuffer_;
+}
+
+std::vector<uint16_t> VertexBuffer::getIndices() const {
+  return indices_;
 }
 
 void VertexBuffer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory)
@@ -158,4 +173,25 @@ void VertexBuffer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSi
   vkQueueWaitIdle(graphicsQueue_);
 
   vkFreeCommandBuffers(device_->getLogicalDevice(), commandPool_, 1, &commandBuffer);
+}
+
+void VertexBuffer::createIndexBuffer()
+{
+  VkDeviceSize bufferSize = sizeof(indices_[0]) * indices_.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+  void *data;
+  vkMapMemory(device_->getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+  memcpy(data, indices_.data(), (size_t)bufferSize);
+  vkUnmapMemory(device_->getLogicalDevice(), stagingBufferMemory);
+
+  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer_, indexBufferMemory_);
+
+  copyBuffer(stagingBuffer, indexBuffer_, bufferSize);
+
+  vkDestroyBuffer(device_->getLogicalDevice(), stagingBuffer, nullptr);
+  vkFreeMemory(device_->getLogicalDevice(), stagingBufferMemory, nullptr);
 }

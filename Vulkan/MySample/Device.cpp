@@ -41,10 +41,15 @@ void Device::create(const std::vector<const char*>& validationLayers) {
 
   // Create the vertex buffer
   const std::vector<VertexBuffer::Vertex> vertices = {
-      {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-      {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-      {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
-  vertexBuffer_ = std::make_unique<VertexBuffer>(getPtr(), vertices);
+      {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+      {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+
+  const std::vector<uint16_t> indices = {
+      0, 1, 2, 2, 3, 0};
+
+  vertexBuffer_ = std::make_unique<VertexBuffer>(getPtr(), vertices, indices);
   vertexBuffer_->create(commandPool_->getCommandPool(), queueSelector_->getGraphicsQueue());
 
   // Create the command buffers.

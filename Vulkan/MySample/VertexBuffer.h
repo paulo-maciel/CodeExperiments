@@ -14,7 +14,7 @@ class VertexBuffer
 public:
   struct Vertex;
 
-  VertexBuffer(std::shared_ptr<Device> device, const std::vector<Vertex>& vertices);
+  VertexBuffer(std::shared_ptr<Device> device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> indices);
   ~VertexBuffer();
 
   struct Vertex
@@ -32,21 +32,33 @@ public:
   // Create a single vertex buffer
   void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
 
+  // Create a single index buffer
+  void createIndexBuffer();
+
   // Copy one buffer (CPU/staging) to another GPU buffer.
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
   VkBuffer getVkBuffer() const;
   std::vector<VertexBuffer::Vertex> getVertices() const;
 
-  private:
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+  VkBuffer getIndexBuffer() const;
+  std::vector<uint16_t> getIndices() const;
 
-  private:
-    const std::vector<Vertex> vertices_;
+private:
+  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    std::shared_ptr<Device> device_;
-    VkBuffer vertexBuffer_;
-    VkDeviceMemory vertexBufferMemory_;
-    VkCommandPool commandPool_;
-    VkQueue graphicsQueue_;
+private:
+  const std::vector<Vertex> vertices_;
+  const std::vector<uint16_t> indices_;
+
+  std::shared_ptr<Device> device_;
+
+  VkBuffer vertexBuffer_;
+  VkDeviceMemory vertexBufferMemory_;
+
+  VkBuffer indexBuffer_;
+  VkDeviceMemory indexBufferMemory_;
+
+  VkCommandPool commandPool_;
+  VkQueue graphicsQueue_;
   };
