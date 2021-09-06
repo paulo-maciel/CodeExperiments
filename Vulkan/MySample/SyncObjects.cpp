@@ -1,5 +1,6 @@
 #include <SyncObjects.h>
 #include <Device.h>
+#include <SwapChain.h>
 
 #include <map>
 #include <iostream>

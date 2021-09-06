@@ -2,12 +2,13 @@
 
 #include <vulkan/vulkan.h>
 
-#include <QueueSelector.h>
-#include <SwapChain.h>
-#include <GraphicsPipeline.h>
-#include <CommandPool.h>
-#include <SyncObjects.h>
-#include <VertexBuffer.h>
+class QueueSelector;
+class SwapChain;
+class GraphicsPipeline;
+class CommandPool;
+class SyncObjects;
+class VertexBuffer;
+class UniformBuffer;
 
 #include <iostream>
 #include <vector>
@@ -38,6 +39,7 @@ public:
   std::shared_ptr<GraphicsPipeline> getGraphicsPipeline() const;
   std::shared_ptr<CommandPool> getCommandPool() const;
   std::shared_ptr<SyncObjects> getSyncObjects() const;
+  std::shared_ptr<UniformBuffer> getUniformBuffer() const;
 
 private:
   void selectPhysical();
@@ -65,6 +67,7 @@ private:
   std::shared_ptr<CommandPool> commandPool_;
   std::shared_ptr<SyncObjects> syncObjects_;
   std::shared_ptr<VertexBuffer> vertexBuffer_;
+  std::shared_ptr<UniformBuffer> uniformBuffer_;
 
   const std::vector<const char*> requiredExtensions_;
 };

@@ -1,6 +1,7 @@
 #include <CommandPool.h>
 
 #include <Device.h>
+#include <VertexBuffer.h>
 
 #include <map>
 #include <iostream>

@@ -1,5 +1,13 @@
 #include <Device.h>
 
+#include <QueueSelector.h>
+#include <SwapChain.h>
+#include <GraphicsPipeline.h>
+#include <CommandPool.h>
+#include <SyncObjects.h>
+#include <VertexBuffer.h>
+#include <UniformBuffer.h>
+
 #include <map>
 #include <set>
 
@@ -51,6 +59,9 @@ void Device::create(const std::vector<const char*>& validationLayers) {
 
   vertexBuffer_ = std::make_unique<VertexBuffer>(getPtr(), vertices, indices);
   vertexBuffer_->create(commandPool_->getCommandPool(), queueSelector_->getGraphicsQueue());
+
+  uniformBuffer_ = std::make_shared<UniformBuffer>(getPtr(), swapChain_);
+  uniformBuffer_->create();
 
   // Create the command buffers.
   commandPool_->createCommandBuffers(vertexBuffer_);
@@ -214,7 +225,15 @@ std::shared_ptr<SyncObjects> Device::getSyncObjects() const {
     return syncObjects_;
 }
 
+std::shared_ptr<UniformBuffer> Device::getUniformBuffer() const {
+  return uniformBuffer_;
+}
+
 void Device::destroy() {
+
+    cout << "Destroying uniform buffers." << endl;
+    uniformBuffer_->destroy();
+    
     cout << "Destroying the sync objects. " << endl;
     syncObjects_->destroy();
 

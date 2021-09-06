@@ -1,6 +1,14 @@
 
 #include <VulkanApp.h>
 
+#include <Device.h>
+#include <QueueSelector.h>
+#include <SwapChain.h>
+#include <VertexBuffer.h>
+#include <CommandPool.h>
+#include <SyncObjects.h>
+#include <UniformBuffer.h>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -280,6 +288,10 @@ void VulkanApp::drawFrame() {
                           device_->getSwapChain()->getSwapChain(), UINT64_MAX, 
                           syncObjects->getImageAvailableSemaphores()[currentFrame_], 
                           VK_NULL_HANDLE, &imageIndex);
+
+    auto uniformBuffer = device_->getUniformBuffer();
+
+    //uniformBuffer->update(currentFrame_);
 
     // Check if a previous frame is using this image (i.e. there is its fence to wait on)
     if (syncObjects->getImagesInflight()[imageIndex] != VK_NULL_HANDLE) {
