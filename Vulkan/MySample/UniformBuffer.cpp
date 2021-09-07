@@ -50,16 +50,16 @@ bool UniformBuffer::update(uint32_t currentImage) {
   auto currentTime = std::chrono::high_resolution_clock::now();
   float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
+  // Note: In Vulkan, x to right, y is down, and z is inside the screen.  A right handed CS.
   UniformBufferObject ubo{};
   ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-  ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
   ubo.proj = glm::perspective(glm::radians(45.0f), swapChain_->getExtent2D().width / (float)swapChain_->getExtent2D().height, 0.1f, 10.0f);
 
-  cout << "currentImage: " << currentImage << " aspect " << swapChain_->getExtent2D().width / (float)swapChain_->getExtent2D().height << endl;
   // Note: GLM was originally designed for OpenGL, where the Y coordinate of the clip
   // coordinates is inverted. The easiest way to compensate for that is to flip the
   // sign on the scaling factor of the Y axis in the projection matrix. If you don’t
-  // do this, then the image will be rendered upside down.
+  // do this, then the image will be rendered upside down. 
   ubo.proj[1][1] *= -1;
 
   void *data;
