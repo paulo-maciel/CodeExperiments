@@ -44,7 +44,7 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass());
 
   // Create the command pool and the command buffers.
-  commandPool_ = std::make_shared<CommandPool>(getPtr());
+  commandPool_ = std::make_shared<CommandPool>(getPtr(), swapChain_, graphicsPipeline_);
   commandPool_->create();
 
   // Create the vertex buffer
@@ -62,6 +62,10 @@ void Device::create(const std::vector<const char*>& validationLayers) {
 
   uniformBuffer_ = std::make_shared<UniformBuffer>(getPtr(), swapChain_);
   uniformBuffer_->create();
+
+  // Create descriptor pool and descriptor sets.
+  commandPool_->createDescriptorPool();
+  commandPool_->createDescriptorSets(uniformBuffer_);
 
   // Create the command buffers.
   commandPool_->createCommandBuffers(vertexBuffer_);

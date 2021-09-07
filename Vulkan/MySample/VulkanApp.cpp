@@ -291,7 +291,7 @@ void VulkanApp::drawFrame() {
 
     auto uniformBuffer = device_->getUniformBuffer();
 
-    //uniformBuffer->update(currentFrame_);
+    uniformBuffer->update(imageIndex);
 
     // Check if a previous frame is using this image (i.e. there is its fence to wait on)
     if (syncObjects->getImagesInflight()[imageIndex] != VK_NULL_HANDLE) {

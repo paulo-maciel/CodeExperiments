@@ -24,14 +24,19 @@ public:
   VkRenderPass getRenderPass() const;
 
   VkPipeline getPipeline() const;
+  VkPipelineLayout getPipelineLayout() const;
+
+  VkDescriptorSetLayout getDescriptorSetLayout() const;
 
 private:
+  void createDescriptorSetLayout();
   void createShaderStages();
   VkShaderModule createShaderModule(const std::vector<char>& code);
   void createPipeline();
 
 private:
   uint8_t numStages_;
+  VkDescriptorSetLayout descriptorSetLayout_;
   VkShaderModule vertShaderModule_;
   VkShaderModule fragShaderModule_;
   

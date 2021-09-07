@@ -24,6 +24,8 @@ public:
   UniformBuffer(std::shared_ptr<Device> device, std::shared_ptr<SwapChain> swapChain);
   ~UniformBuffer();
 
+  std::vector<VkBuffer> getUniformBuffers() const;
+
   bool create();
   void destroy();
 

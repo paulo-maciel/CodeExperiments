@@ -30,6 +30,9 @@ void GraphicsPipeline::destroy() {
 
     cout << "Destroying the pipeline." << endl;
     vkDestroyPipeline(device_, graphicsPipeline_, nullptr); 
+
+    cout << "Destroying descriptor set layout." << endl;
+    vkDestroyDescriptorSetLayout(device_, descriptorSetLayout_, nullptr);
 }
 
 void GraphicsPipeline::createRenderPass() {
@@ -135,7 +138,15 @@ VkRenderPass GraphicsPipeline::getRenderPass() const {
 }
 
 VkPipeline GraphicsPipeline::getPipeline() const {
-    return graphicsPipeline_;
+  return graphicsPipeline_;
+}
+
+VkPipelineLayout GraphicsPipeline::getPipelineLayout() const {
+  return pipelineLayout_;
+}
+
+VkDescriptorSetLayout GraphicsPipeline::getDescriptorSetLayout() const {
+  return descriptorSetLayout_;
 }
 
 // In order to create the pipeline, we need:
@@ -152,6 +163,9 @@ void GraphicsPipeline::create() {
     // First create a render pass.
     createRenderPass();
 
+    // Create the descriptor set layout for the uniform buffers
+    createDescriptorSetLayout();
+
     // Create the pipeline shader stages.
     createShaderStages();
     cout << "Created the shader stages." << endl;
@@ -162,6 +176,26 @@ void GraphicsPipeline::create() {
     // Shader modules no longer needed.
     vkDestroyShaderModule(device_, fragShaderModule_, nullptr);
     vkDestroyShaderModule(device_, vertShaderModule_, nullptr);
+}
+
+void GraphicsPipeline::createDescriptorSetLayout() {
+
+  VkDescriptorSetLayoutBinding uboLayoutBinding{};
+  uboLayoutBinding.binding = 0;
+  uboLayoutBinding.descriptorCount = 1;
+  uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  uboLayoutBinding.pImmutableSamplers = nullptr;
+  uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+  VkDescriptorSetLayoutCreateInfo layoutInfo{};
+  layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  layoutInfo.bindingCount = 1;
+  layoutInfo.pBindings = &uboLayoutBinding;
+
+  if (vkCreateDescriptorSetLayout(device_, &layoutInfo, nullptr, &descriptorSetLayout_) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create descriptor set layout!");
+  }
 }
 
 VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& code) {
@@ -333,8 +367,9 @@ void GraphicsPipeline::createPipeline() {
     // when creating a VkPipelineLayout object.
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
+    //pipelineLayoutInfo.pushConstantRangeCount = 0;
 
     if (vkCreatePipelineLayout(device_, &pipelineLayoutInfo, nullptr, &pipelineLayout_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
