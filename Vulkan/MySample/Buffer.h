@@ -20,6 +20,7 @@ public:
 protected:
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+  // TODO: Rename below to getCommandBuffer and submitCommandBuffer, respectivelly.
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
