@@ -31,9 +31,6 @@ public:
   bool create(VkCommandPool commandPool, VkQueue graphicsQueue);
   void destroy();
 
-  // Create a single vertex buffer
-  void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
-
   // Create a single index buffer
   void createIndexBuffer();
 
