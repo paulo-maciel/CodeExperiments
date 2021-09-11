@@ -1,9 +1,13 @@
 #include <Buffer.h>
+#include <CommandPool.h>
+#include <QueueSelector.h>
 
 #include <stdexcept>
 
-Buffer::Buffer(std::shared_ptr<Device> device)
-  : device_(device) {
+Buffer::Buffer(std::shared_ptr<Device> device, std::shared_ptr<CommandPool> commandPool, std::shared_ptr<QueueSelector> queueSelector)
+  : device_(device)
+  , commandPool_(commandPool)
+  , queueSelector_(queueSelector) {
 }
 
 Buffer::~Buffer() {
@@ -52,4 +56,40 @@ uint32_t Buffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
   }
 
   throw std::runtime_error("failed to find suitable memory type!");
+}
+
+void Buffer::destroy() {
+}
+
+VkCommandBuffer Buffer::beginSingleTimeCommands() {
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandPool = commandPool_->getCommandPool();
+  allocInfo.commandBufferCount = 1;
+
+  VkCommandBuffer commandBuffer;
+  vkAllocateCommandBuffers(device_->getLogicalDevice(), &allocInfo, &commandBuffer);
+
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+  vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+  return commandBuffer;
+}
+
+void Buffer::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+  vkEndCommandBuffer(commandBuffer);
+
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+
+  vkQueueSubmit(queueSelector_->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+  vkQueueWaitIdle(queueSelector_->getGraphicsQueue());
+
+  vkFreeCommandBuffers(device_->getLogicalDevice(), commandPool_->getCommandPool(), 1, &commandBuffer);
 }

@@ -21,7 +21,7 @@ public:
     glm::mat4 proj;
   };
 
-  UniformBuffer(std::shared_ptr<Device> device, std::shared_ptr<SwapChain> swapChain);
+  UniformBuffer(std::shared_ptr<Device> device, std::shared_ptr<CommandPool> commandPool, std::shared_ptr<QueueSelector> queueSelector, std::shared_ptr<SwapChain> swapChain);
   ~UniformBuffer();
 
   std::vector<VkBuffer> getUniformBuffers() const;

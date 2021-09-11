@@ -1,6 +1,4 @@
 #include <TextureImage.h>
-#include <CommandPool.h>
-#include <QueueSelector.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -10,9 +8,7 @@
 using namespace std;
 
 TextureImage::TextureImage(std::shared_ptr<Device> device, std::shared_ptr<CommandPool> commandPool, std::shared_ptr<QueueSelector> queueSelector)
-  : Buffer(device)
-  , commandPool_(commandPool)
-  , queueSelector_(queueSelector) {
+  : Buffer(device, commandPool, queueSelector) {
 }
 
 TextureImage::~TextureImage() {
@@ -53,10 +49,8 @@ bool TextureImage::create(const std::string& filename) {
 }
 
 void TextureImage::destroy() {
-  // for (size_t i = 0; i < swapChain_->getBufferCount(); i++) {
-  //   vkDestroyBuffer(device_->getLogicalDevice(), uniformBuffers_[i], nullptr);
-  //   vkFreeMemory(device_->getLogicalDevice(), uniformBuffersMemory_[i], nullptr);
-  // }
+  vkDestroyImage(device_->getLogicalDevice(), textureImage_, nullptr);
+  vkFreeMemory(device_->getLogicalDevice(), textureImageMemory_, nullptr);
 }
 
 // Create the Vulkan image.
@@ -163,37 +157,4 @@ void TextureImage::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t wi
   vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
   endSingleTimeCommands(commandBuffer);
-}
-
-VkCommandBuffer TextureImage::beginSingleTimeCommands() {
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = commandPool_->getCommandPool();
-  allocInfo.commandBufferCount = 1;
-
-  VkCommandBuffer commandBuffer;
-  vkAllocateCommandBuffers(device_->getLogicalDevice(), &allocInfo, &commandBuffer);
-
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-  vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-  return commandBuffer;
-}
-
-void TextureImage::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
-  vkEndCommandBuffer(commandBuffer);
-
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
-
-  vkQueueSubmit(queueSelector_->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(queueSelector_->getGraphicsQueue());
-
-  vkFreeCommandBuffers(device_->getLogicalDevice(), commandPool_->getCommandPool(), 1, &commandBuffer);
 }

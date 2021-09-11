@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Buffer.h>
+
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
@@ -9,12 +11,12 @@
 
 class Device;
 
-class VertexBuffer
-{
+class VertexBuffer : public Buffer {
 public:
   struct Vertex;
 
-  VertexBuffer(std::shared_ptr<Device> device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> indices);
+  VertexBuffer(std::shared_ptr<Device> device, std::shared_ptr<CommandPool> commandPool, std::shared_ptr<QueueSelector> queueSelector, 
+               const std::vector<Vertex> &vertices, const std::vector<uint16_t> indices);
   ~VertexBuffer();
 
   struct Vertex
@@ -50,8 +52,6 @@ private:
 private:
   const std::vector<Vertex> vertices_;
   const std::vector<uint16_t> indices_;
-
-  std::shared_ptr<Device> device_;
 
   VkBuffer vertexBuffer_;
   VkDeviceMemory vertexBufferMemory_;

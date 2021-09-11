@@ -8,8 +8,7 @@
 #include <string>
 
 class Device;
-class CommandPool;
-class QueueSelector;
+
 
 class TextureImage : public Buffer {
 public:
@@ -28,14 +27,8 @@ private:
   void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-
-  VkCommandBuffer beginSingleTimeCommands();
-  void endSingleTimeCommands(VkCommandBuffer commandBuffer);
                   
 private: 
-
-  std::shared_ptr<CommandPool> commandPool_;
-  std::shared_ptr<QueueSelector> queueSelector_;
 
   VkImage textureImage_;
   VkDeviceMemory textureImageMemory_;

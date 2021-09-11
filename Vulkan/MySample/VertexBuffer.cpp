@@ -32,8 +32,10 @@ std::array<VkVertexInputAttributeDescription, 2> VertexBuffer::Vertex::getAttrib
   return attributeDescriptions;
 }
 
-VertexBuffer::VertexBuffer(std::shared_ptr<Device> device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> indices)
-  : device_(device) 
+
+VertexBuffer::VertexBuffer(std::shared_ptr<Device> device, std::shared_ptr<CommandPool> commandPool, std::shared_ptr<QueueSelector> queueSelector,
+                           const std::vector<Vertex> &vertices, const std::vector<uint16_t> indices)
+  : Buffer(device, commandPool, queueSelector)
   , vertices_(vertices)
   , indices_(indices) {
 }
@@ -120,8 +122,7 @@ void VertexBuffer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkM
   bufferInfo.usage = usage;
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-  if (vkCreateBuffer(device_->getLogicalDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-  {
+  if (vkCreateBuffer(device_->getLogicalDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
     throw std::runtime_error("failed to create buffer!");
   }
 

@@ -13,15 +13,15 @@
 
 using namespace std;
 
-UniformBuffer::UniformBuffer(std::shared_ptr<Device> device, std::shared_ptr<SwapChain> swapChain)
-  : Buffer(device)
+UniformBuffer::UniformBuffer(shared_ptr<Device> device, shared_ptr<CommandPool> commandPool, shared_ptr<QueueSelector> queueSelector, shared_ptr<SwapChain> swapChain)
+  : Buffer(device, commandPool, queueSelector)
   , swapChain_(swapChain) {
 }
 
 UniformBuffer::~UniformBuffer() {
 }
 
-std::vector<VkBuffer> UniformBuffer::getUniformBuffers() const {
+vector<VkBuffer> UniformBuffer::getUniformBuffers() const {
   return uniformBuffers_;
 }
 
@@ -45,10 +45,10 @@ void UniformBuffer::destroy() {
 }
 
 bool UniformBuffer::update(uint32_t currentImage) {
-  static auto startTime = std::chrono::high_resolution_clock::now();
+  static auto startTime = chrono::high_resolution_clock::now();
 
-  auto currentTime = std::chrono::high_resolution_clock::now();
-  float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+  auto currentTime = chrono::high_resolution_clock::now();
+  float time = chrono::duration<float, chrono::seconds::period>(currentTime - startTime).count();
 
   // Note: In Vulkan, x to right, y is down, and z is inside the screen.  A right handed CS.
   UniformBufferObject ubo{};

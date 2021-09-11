@@ -63,10 +63,10 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   const std::vector<uint16_t> indices = {
       0, 1, 2, 2, 3, 0};
 
-  vertexBuffer_ = std::make_unique<VertexBuffer>(getPtr(), vertices, indices);
+  vertexBuffer_ = std::make_unique<VertexBuffer>(getPtr(), commandPool_, queueSelector_, vertices, indices);
   vertexBuffer_->create(commandPool_->getCommandPool(), queueSelector_->getGraphicsQueue());
 
-  uniformBuffer_ = std::make_shared<UniformBuffer>(getPtr(), swapChain_);
+  uniformBuffer_ = std::make_shared<UniformBuffer>(getPtr(), commandPool_, queueSelector_, swapChain_);
   uniformBuffer_->create();
 
   // Create descriptor pool and descriptor sets.
@@ -240,27 +240,29 @@ std::shared_ptr<UniformBuffer> Device::getUniformBuffer() const {
 }
 
 void Device::destroy() {
+  cout << "Destroying texture image." << endl;
+  textureImage_->destroy();
 
-    cout << "Destroying uniform buffers." << endl;
-    uniformBuffer_->destroy();
-    
-    cout << "Destroying the sync objects. " << endl;
-    syncObjects_->destroy();
+  cout << "Destroying uniform buffers." << endl;
+  uniformBuffer_->destroy();
 
-    cout << "Destroying the command pool. " << endl;
-    commandPool_->destroy();
+  cout << "Destroying the sync objects. " << endl;
+  syncObjects_->destroy();
 
-    cout << "Destroying the vertex buffer. " << endl;
-    vertexBuffer_->destroy();
+  cout << "Destroying the command pool. " << endl;
+  commandPool_->destroy();
 
-    cout << "Destroying Vulkan pipeline. " << endl;
-    graphicsPipeline_->destroy();
+  cout << "Destroying the vertex buffer. " << endl;
+  vertexBuffer_->destroy();
 
-    cout << "Destroying the Vulkan swap chain. " << endl;
-    swapChain_->destroy();
+  cout << "Destroying Vulkan pipeline. " << endl;
+  graphicsPipeline_->destroy();
 
-    cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
-    vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);
+  cout << "Destroying the Vulkan swap chain. " << endl;
+  swapChain_->destroy();
 
-    vkDestroyDevice(device_, nullptr);
+  cout << "Destroying Vulkan surface: " << vkSurface_ << endl;
+  vkDestroySurfaceKHR(vkInstance_, vkSurface_, nullptr);
+
+  vkDestroyDevice(device_, nullptr);
 }
