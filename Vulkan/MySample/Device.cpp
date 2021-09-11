@@ -7,6 +7,7 @@
 #include <SyncObjects.h>
 #include <VertexBuffer.h>
 #include <UniformBuffer.h>
+#include <TextureImage.h>
 
 #include <map>
 #include <set>
@@ -46,6 +47,11 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // Create the command pool and the command buffers.
   commandPool_ = std::make_shared<CommandPool>(getPtr(), swapChain_, graphicsPipeline_);
   commandPool_->create();
+
+  // Create a texture images.
+  textureImage_ = std::make_shared<TextureImage>(getPtr(), commandPool_, queueSelector_);
+  string image = "assets/images/population.png";
+  textureImage_->create(image);
 
   // Create the vertex buffer
   const std::vector<VertexBuffer::Vertex> vertices = {

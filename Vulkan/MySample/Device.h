@@ -9,6 +9,7 @@ class CommandPool;
 class SyncObjects;
 class VertexBuffer;
 class UniformBuffer;
+class TextureImage;
 
 #include <iostream>
 #include <vector>
@@ -68,6 +69,7 @@ private:
   std::shared_ptr<SyncObjects> syncObjects_;
   std::shared_ptr<VertexBuffer> vertexBuffer_;
   std::shared_ptr<UniformBuffer> uniformBuffer_;
+  std::shared_ptr<TextureImage> textureImage_;
 
   const std::vector<const char*> requiredExtensions_;
 };
