@@ -28,7 +28,7 @@ public:
   ~Device();
 
   std::shared_ptr<Device> getPtr() {
-      return shared_from_this();
+    return shared_from_this();
   }
 
   void create(const std::vector<const char*>& validationLayers);

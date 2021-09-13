@@ -59,9 +59,10 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   commandPool_->create();
 
   // Create a texture images.
+  // TODO: App specific
   textureImage_ = std::make_shared<TextureImage>(getPtr(), commandPool_, queueSelector_);
   string image = "assets/images/population.png";
-  textureImage_->create(image);
+  textureImage_->create(image, VK_FORMAT_R8G8B8A8_SRGB);
 
   // Create a texture sampler.
   textureImageSampler_ = std::make_shared<TextureImageSampler>(getPtr());
@@ -86,7 +87,7 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // Create descriptor pool and descriptor sets.
   descriptorPool_ = std::make_shared<DescriptorPool>(getPtr(), swapChain_, graphicsPipeline_);
   descriptorPool_->create();
-  descriptorPool_->createDescriptorSets(uniformBuffer_);
+  descriptorPool_->createDescriptorSets(uniformBuffer_, textureImage_, textureImageSampler_);
 
   // Create the command buffers.
   commandPool_->createCommandBuffers(vertexBuffer_, descriptorPool_->getDescriptorSets());

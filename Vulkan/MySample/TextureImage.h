@@ -16,20 +16,24 @@ public:
   TextureImage(std::shared_ptr<Device> device, std::shared_ptr<CommandPool> commandPool, std::shared_ptr<QueueSelector> queueSelector);
   ~TextureImage();
 
-  bool create(const std::string &filename);
+  bool create(const std::string &filename, VkFormat imageViewFormat);
   void destroy();
+
+  void createImageView(VkFormat imageViewFormat);
+
+  VkImage getTextureImage() const;
+  VkImageView getTextureImageView() const;
 
 private:
   void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                   VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
-                   VkImage &image, VkDeviceMemory &imageMemory);
+                   VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
   void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
                   
 private: 
-
   VkImage textureImage_;
+  VkImageView textureImageView_;
   VkDeviceMemory textureImageMemory_;
 };

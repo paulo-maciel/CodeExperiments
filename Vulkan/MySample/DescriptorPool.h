@@ -14,6 +14,8 @@ class VertexBuffer;
 class SwapChain;
 class GraphicsPipeline;
 class UniformBuffer;
+class TextureImage;
+class TextureImageSampler;
 
 class DescriptorPool {
 public:
@@ -25,7 +27,9 @@ public:
   void create();
   void destroy();
 
-  void createDescriptorSets(std::shared_ptr<UniformBuffer> uniformBuffer);
+  void createDescriptorSets(std::shared_ptr<UniformBuffer> uniformBuffer,
+                            std::shared_ptr<TextureImage> textureImage,
+                            std::shared_ptr<TextureImageSampler> textureImageSampler);
   std::vector<VkDescriptorSet> getDescriptorSets() const;
 
   VkDescriptorPool getDescriptorPool() const;

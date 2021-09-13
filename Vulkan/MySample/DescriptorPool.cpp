@@ -6,6 +6,8 @@
 #include <QueueSelector.h>
 #include <GraphicsPipeline.h>
 #include <UniformBuffer.h>
+#include <TextureImage.h>
+#include <TextureImageSampler.h>
 
 #include <map>
 #include <iostream>
@@ -57,7 +59,9 @@ VkDescriptorPool DescriptorPool::getDescriptorPool() const {
   return descriptorPool_;
 }
 
-void DescriptorPool::createDescriptorSets(std::shared_ptr<UniformBuffer> uniformBuffer) {
+void DescriptorPool::createDescriptorSets(std::shared_ptr<UniformBuffer> uniformBuffer,
+                                          std::shared_ptr<TextureImage> textureImage,
+                                          std::shared_ptr<TextureImageSampler> textureImageSampler) {
   std::vector<VkDescriptorSetLayout> layouts(swapChain_->getBufferCount(), graphicsPipeline_->getDescriptorSetLayout());
 
   VkDescriptorSetAllocateInfo allocInfo{};
@@ -77,16 +81,30 @@ void DescriptorPool::createDescriptorSets(std::shared_ptr<UniformBuffer> uniform
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBuffer::UniformBufferObject);
 
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = descriptorSets_[i];
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
+    VkDescriptorImageInfo imageInfo{};
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.sampler = textureImageSampler->getSampler();
+    imageInfo.imageView = textureImage->getTextureImageView();
 
-    vkUpdateDescriptorSets(device_->getLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+
+    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[0].dstSet = descriptorSets_[i];
+    descriptorWrites[0].dstBinding = 0;
+    descriptorWrites[0].dstArrayElement = 0;
+    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = descriptorSets_[i];
+    descriptorWrites[1].dstBinding = 1;
+    descriptorWrites[1].dstArrayElement = 0;
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pImageInfo = &imageInfo;
+
+    vkUpdateDescriptorSets(device_->getLogicalDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
   }
 }
 
