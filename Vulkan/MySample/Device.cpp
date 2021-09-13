@@ -276,6 +276,9 @@ void Device::destroy() {
   cout << "Destroying the sync objects. " << endl;
   syncObjects_->destroy();
 
+  cout << "Destroying the descriptor pool. " << endl;
+  descriptorPool_->destroy();
+
   cout << "Destroying the command pool. " << endl;
   commandPool_->destroy();
 
