@@ -61,7 +61,7 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // Create a texture images.
   // TODO: App specific
   textureImage_ = std::make_shared<TextureImage>(getPtr(), commandPool_, queueSelector_);
-  string image = "assets/images/population.png";
+  string image = "assets/images/earth.png";
   textureImage_->create(image, VK_FORMAT_R8G8B8A8_SRGB);
 
   // Create a texture sampler.
