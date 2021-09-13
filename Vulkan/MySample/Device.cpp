@@ -4,6 +4,7 @@
 #include <SwapChain.h>
 #include <GraphicsPipeline.h>
 #include <CommandPool.h>
+#include <DescriptorPool.h>
 #include <SyncObjects.h>
 #include <VertexBuffer.h>
 #include <UniformBuffer.h>
@@ -83,11 +84,12 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   uniformBuffer_->create();
 
   // Create descriptor pool and descriptor sets.
-  commandPool_->createDescriptorPool();
-  commandPool_->createDescriptorSets(uniformBuffer_);
+  descriptorPool_ = std::make_shared<DescriptorPool>(getPtr(), swapChain_, graphicsPipeline_);
+  descriptorPool_->create();
+  descriptorPool_->createDescriptorSets(uniformBuffer_);
 
   // Create the command buffers.
-  commandPool_->createCommandBuffers(vertexBuffer_);
+  commandPool_->createCommandBuffers(vertexBuffer_, descriptorPool_->getDescriptorSets());
 
   syncObjects_ = std::make_unique<SyncObjects>(getPtr());
   syncObjects_->create();

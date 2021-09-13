@@ -15,26 +15,26 @@ class SwapChain;
 class GraphicsPipeline;
 class UniformBuffer;
 
-class CommandPool {
+class DescriptorPool {
 public:
-  CommandPool(std::shared_ptr<Device> device,
+  DescriptorPool(std::shared_ptr<Device> device,
               std::shared_ptr<SwapChain> swapChain,
               std::shared_ptr<GraphicsPipeline> graphicsPipeline);
-  ~CommandPool();
+  ~DescriptorPool();
 
   void create();
   void destroy();
 
-  void createCommandBuffers(std::shared_ptr<VertexBuffer> vertexBuffer, const std::vector<VkDescriptorSet> &descriptorSets);
-  VkCommandBuffer *getCommandBuffers();
+  void createDescriptorSets(std::shared_ptr<UniformBuffer> uniformBuffer);
+  std::vector<VkDescriptorSet> getDescriptorSets() const;
 
-  VkCommandPool getCommandPool() const;
+  VkDescriptorPool getDescriptorPool() const;
 
 private:
   std::shared_ptr<Device> device_;
   std::shared_ptr<SwapChain> swapChain_;
   std::shared_ptr<GraphicsPipeline> graphicsPipeline_;
 
-  VkCommandPool commandPool_;
-  std::vector<VkCommandBuffer> commandBuffers_;
+  VkDescriptorPool descriptorPool_;
+  std::vector<VkDescriptorSet> descriptorSets_;
 };

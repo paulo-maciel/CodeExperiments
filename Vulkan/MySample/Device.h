@@ -6,6 +6,7 @@ class QueueSelector;
 class SwapChain;
 class GraphicsPipeline;
 class CommandPool;
+class DescriptorPool;
 class SyncObjects;
 class VertexBuffer;
 class UniformBuffer;
@@ -67,12 +68,12 @@ private:
   std::shared_ptr<SwapChain> swapChain_;
   std::shared_ptr<GraphicsPipeline> graphicsPipeline_;
   std::shared_ptr<CommandPool> commandPool_;
+  std::shared_ptr<DescriptorPool> descriptorPool_;
   std::shared_ptr<SyncObjects> syncObjects_;
   std::shared_ptr<VertexBuffer> vertexBuffer_;
   std::shared_ptr<UniformBuffer> uniformBuffer_;
   std::shared_ptr<TextureImage> textureImage_;
   std::shared_ptr<TextureImageSampler> textureImageSampler_;
-
 
   const std::vector<const char*> requiredExtensions_;
 };

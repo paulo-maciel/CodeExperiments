@@ -6,6 +6,7 @@
 #include <QueueSelector.h>
 #include <GraphicsPipeline.h>
 #include <UniformBuffer.h>
+#include <DescriptorPool.h>
 
 #include <map>
 #include <iostream>
@@ -29,8 +30,6 @@ CommandPool::~CommandPool() {
 
 void CommandPool::destroy() {
     vkDestroyCommandPool(device_->getLogicalDevice(), commandPool_, nullptr);
-
-    vkDestroyDescriptorPool(device_->getLogicalDevice(), descriptorPool_, nullptr);
 
     // No longer need the device.
     device_.reset();
@@ -61,62 +60,64 @@ void CommandPool::create() {
 }
 
 // Record draw command pass.
-void CommandPool::createCommandBuffers(std::shared_ptr<VertexBuffer> vertexBuffer) {
-    commandBuffers_.resize(device_->getSwapChain()->getFrameBuffers().size());
+void CommandPool::createCommandBuffers(std::shared_ptr<VertexBuffer> vertexBuffer, const std::vector<VkDescriptorSet>& descriptorSets)
+{
+  commandBuffers_.resize(device_->getSwapChain()->getFrameBuffers().size());
 
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool_;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = (uint32_t) commandBuffers_.size();
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.commandPool = commandPool_;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandBufferCount = (uint32_t)commandBuffers_.size();
 
-    if (vkAllocateCommandBuffers(device_->getLogicalDevice(), &allocInfo, commandBuffers_.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate command buffers!");
+  if (vkAllocateCommandBuffers(device_->getLogicalDevice(), &allocInfo, commandBuffers_.data()) != VK_SUCCESS) {
+    throw std::runtime_error("failed to allocate command buffers!");
+  }
+
+  for (size_t i = 0; i < commandBuffers_.size(); i++)
+  {
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    if (vkBeginCommandBuffer(commandBuffers_[i], &beginInfo) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to begin recording command buffer!");
     }
 
-    for (size_t i = 0; i < commandBuffers_.size(); i++) {
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = device_->getGraphicsPipeline()->getRenderPass();
+    renderPassInfo.framebuffer = device_->getSwapChain()->getFrameBuffers()[i];
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = device_->getSwapChain()->getExtent2D();
 
-        if (vkBeginCommandBuffer(commandBuffers_[i], &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("failed to begin recording command buffer!");
-        }
+    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
 
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = device_->getGraphicsPipeline()->getRenderPass();
-        renderPassInfo.framebuffer = device_->getSwapChain()->getFrameBuffers()[i];
-        renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = device_->getSwapChain()->getExtent2D();
+    vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &clearColor;
+    // Bind the pipeline.
+    vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipeline());
 
-        vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    // Bind vertex and index buffer.
+    VkBuffer vertexBuffers[] = {vertexBuffer->getVkBuffer()};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffers_[i], 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffers_[i], vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
-            // Bind the pipeline.
-            vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipeline());
+    // Bind descriptor set with uniform buffer;
+    vkCmdBindDescriptorSets(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipelineLayout(), 0, 1, &descriptorSets[i], 0, nullptr);
 
-            // Bind vertex and index buffer.
-            VkBuffer vertexBuffers[] = {vertexBuffer->getVkBuffer()};
-            VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(commandBuffers_[i], 0, 1, vertexBuffers, offsets);
-            vkCmdBindIndexBuffer(commandBuffers_[i], vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+    // Draw using indices.
+    vkCmdDrawIndexed(commandBuffers_[i], static_cast<uint32_t>(vertexBuffer->getIndices().size()), 1, 0, 0, 0);
 
-            // Bind descriptor set with uniform buffer;
-            vkCmdBindDescriptorSets(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipelineLayout(), 0, 1, &descriptorSets_[i], 0, nullptr);
+    vkCmdEndRenderPass(commandBuffers_[i]);
 
-            // Draw using indices.
-            vkCmdDrawIndexed(commandBuffers_[i], static_cast<uint32_t>(vertexBuffer->getIndices().size()), 1, 0, 0, 0);
-
-        vkCmdEndRenderPass(commandBuffers_[i]);
-
-        if (vkEndCommandBuffer(commandBuffers_[i]) != VK_SUCCESS)
-        {
-          throw std::runtime_error("failed to record command buffer!");
-        }
+    if (vkEndCommandBuffer(commandBuffers_[i]) != VK_SUCCESS) {
+      throw std::runtime_error("failed to record command buffer!");
     }
+  }
 }
 
 VkCommandPool CommandPool::getCommandPool() const {
@@ -125,62 +126,4 @@ VkCommandPool CommandPool::getCommandPool() const {
 
 VkCommandBuffer *CommandPool::getCommandBuffers() {
   return commandBuffers_.data();
-}
-
-void CommandPool::createDescriptorPool()
-{
-  VkDescriptorPoolSize poolSize{};
-  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSize.descriptorCount = static_cast<uint32_t>(swapChain_->getBufferCount());
-
-  VkDescriptorPoolCreateInfo poolInfo{};
-  poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolInfo.poolSizeCount = 1;
-  poolInfo.pPoolSizes = &poolSize;
-  poolInfo.maxSets = static_cast<uint32_t>(swapChain_->getBufferCount());
-
-  if (vkCreateDescriptorPool(device_->getLogicalDevice(), &poolInfo, nullptr, &descriptorPool_) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor pool!");
-  }
-}
-
-void CommandPool::createDescriptorSets(std::shared_ptr<UniformBuffer> uniformBuffer)
-{
-  std::vector<VkDescriptorSetLayout> layouts(swapChain_->getBufferCount(), graphicsPipeline_->getDescriptorSetLayout());
-
-  VkDescriptorSetAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocInfo.descriptorPool = descriptorPool_;
-  allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChain_->getBufferCount());
-  allocInfo.pSetLayouts = layouts.data();
-
-  descriptorSets_.resize(swapChain_->getBufferCount());
-  if (vkAllocateDescriptorSets(device_->getLogicalDevice(), &allocInfo, descriptorSets_.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
-
-  for (size_t i = 0; i < swapChain_->getBufferCount(); i++)
-  {
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformBuffer->getUniformBuffers()[i];
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBuffer::UniformBufferObject);
-
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = descriptorSets_[i];
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-
-    vkUpdateDescriptorSets(device_->getLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
-  }
-}
-
-std::vector<VkDescriptorSet> CommandPool::getDescriptorSets() const {
-  return descriptorSets_;
 }
