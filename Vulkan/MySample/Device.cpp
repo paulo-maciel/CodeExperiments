@@ -20,8 +20,16 @@ Device::Device(VkInstance vkInstance, VkSurfaceKHR vkSurface)
 , physicalDevice_(VK_NULL_HANDLE)
 , device_(VK_NULL_HANDLE)
 , vkSurface_(vkSurface)
+, requestedDeviceFeatures_{}
 , deviceFeatures_{}
 , requiredExtensions_{VK_KHR_SWAPCHAIN_EXTENSION_NAME} {
+
+  // TODO: This is application related.
+  // Enable unasotropic filtering.
+  requestedDeviceFeatures_.samplerAnisotropy = VK_TRUE;
+
+  // No need for geometry shader.
+  requestedDeviceFeatures_.geometryShader = VK_FALSE;
 }
 
 Device::~Device() {
@@ -170,11 +178,14 @@ int Device::rateDevice(const VkPhysicalDevice& physicalDevice) {
     score += deviceProperties.limits.maxImageDimension2D;
 
     // Application can't function without geometry shaders
-    if (!deviceFeatures.geometryShader) {
+    if (requestedDeviceFeatures_.geometryShader) {
+      if (!deviceFeatures.geometryShader) {
         cout << "Device does not support geometry shader." << endl;
         score = -1;
-    } else {
-        score += 10000;
+      } else {
+          score += 10000;
+          deviceFeatures_.geometryShader = requestedDeviceFeatures_.geometryShader;
+      }
     }
 
     if (!checkForRequiredExtension(physicalDevice)) {
@@ -191,6 +202,12 @@ int Device::rateDevice(const VkPhysicalDevice& physicalDevice) {
         score = -1;
     } else {
         score += 10000;
+    }
+
+    if (requestedDeviceFeatures_.samplerAnisotropy = VK_TRUE && deviceFeatures.samplerAnisotropy) {
+      score += 1000;
+      deviceFeatures_.samplerAnisotropy = requestedDeviceFeatures_.samplerAnisotropy;
+      cout << "Device supports anisotropic filtering." << endl;
     }
 
     cout << "Total device score: " << score << endl;

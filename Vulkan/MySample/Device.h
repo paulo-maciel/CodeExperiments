@@ -60,7 +60,7 @@ private:
 
   VkSurfaceKHR vkSurface_;
 
-  // TODO: Set the device features.
+  VkPhysicalDeviceFeatures requestedDeviceFeatures_;
   VkPhysicalDeviceFeatures deviceFeatures_;
 
   std::shared_ptr<QueueSelector> queueSelector_;
