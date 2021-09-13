@@ -8,6 +8,7 @@
 #include <VertexBuffer.h>
 #include <UniformBuffer.h>
 #include <TextureImage.h>
+#include <TextureImageSampler.h>
 
 #include <map>
 #include <set>
@@ -52,6 +53,10 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   textureImage_ = std::make_shared<TextureImage>(getPtr(), commandPool_, queueSelector_);
   string image = "assets/images/population.png";
   textureImage_->create(image);
+
+  // Create a texture sampler.
+  textureImageSampler_ = std::make_shared<TextureImageSampler>(getPtr());
+  textureImageSampler_->create();
 
   // Create the vertex buffer
   const std::vector<VertexBuffer::Vertex> vertices = {
@@ -240,6 +245,9 @@ std::shared_ptr<UniformBuffer> Device::getUniformBuffer() const {
 }
 
 void Device::destroy() {
+  cout << "Destroying texture image sampler." << endl;
+  textureImageSampler_->destroy();
+
   cout << "Destroying texture image." << endl;
   textureImage_->destroy();
 

@@ -10,6 +10,7 @@ class SyncObjects;
 class VertexBuffer;
 class UniformBuffer;
 class TextureImage;
+class TextureImageSampler;
 
 #include <iostream>
 #include <vector>
@@ -70,6 +71,8 @@ private:
   std::shared_ptr<VertexBuffer> vertexBuffer_;
   std::shared_ptr<UniformBuffer> uniformBuffer_;
   std::shared_ptr<TextureImage> textureImage_;
+  std::shared_ptr<TextureImageSampler> textureImageSampler_;
+
 
   const std::vector<const char*> requiredExtensions_;
 };
