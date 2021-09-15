@@ -1,5 +1,8 @@
 #include <GraphicsPipeline.h>
 
+#include <SwapChain.h>
+#include <Device.h>
+#include <DepthStencil.h>
 #include <VertexBuffer.h>
 
 #include <map>
@@ -11,10 +14,11 @@
 using namespace std;
 using Vertex = VertexBuffer::Vertex;
 
-GraphicsPipeline::GraphicsPipeline(VkDevice device, std::shared_ptr<SwapChain> swapChain)
+GraphicsPipeline::GraphicsPipeline(std::shared_ptr<Device> device, std::shared_ptr<SwapChain> swapChain, std::shared_ptr<DepthStencil> depthStencil) 
 : numStages_(2)
 , device_(device)
-, swapChain_(swapChain) {
+, swapChain_(swapChain)
+, depthStencil_(depthStencil) {
 }
 
 GraphicsPipeline::~GraphicsPipeline() {
@@ -23,16 +27,16 @@ GraphicsPipeline::~GraphicsPipeline() {
 
 void GraphicsPipeline::destroy() {
     cout << "Destroying the render pass." << endl;
-    vkDestroyRenderPass(device_, renderPass_, nullptr);
+    vkDestroyRenderPass(device_->getLogicalDevice(), renderPass_, nullptr);
 
     cout << "Destroying the pipeline layout." << endl;
-    vkDestroyPipelineLayout(device_, pipelineLayout_, nullptr);
+    vkDestroyPipelineLayout(device_->getLogicalDevice(), pipelineLayout_, nullptr);
 
     cout << "Destroying the pipeline." << endl;
-    vkDestroyPipeline(device_, graphicsPipeline_, nullptr); 
+    vkDestroyPipeline(device_->getLogicalDevice(), graphicsPipeline_, nullptr); 
 
     cout << "Destroying descriptor set layout." << endl;
-    vkDestroyDescriptorSetLayout(device_, descriptorSetLayout_, nullptr);
+    vkDestroyDescriptorSetLayout(device_->getLogicalDevice(), descriptorSetLayout_, nullptr);
 }
 
 void GraphicsPipeline::createRenderPass() {
@@ -86,6 +90,21 @@ void GraphicsPipeline::createRenderPass() {
     // intend to use the attachment to function as color buffer
     colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+    // Create depth attachment.
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = depthStencil_->findDepthFormat();
+    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
     // Description of the subpass.
     VkSubpassDescription subpass{};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;  // as opposed to COMPUTE
@@ -100,33 +119,37 @@ void GraphicsPipeline::createRenderPass() {
     //   but for which the data must be preserved.
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
     VkSubpassDependency dependency{};
     // The special value VK_SUBPASS_EXTERNAL refers to the implicit subpass before or 
     // after the render pass depending on whether it is specified in srcSubpass
     // or dstSubpass.
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.srcAccessMask = 0;
 
     // The next two fields specify the operations to wait on and the stages in which
     // these operations occur. We need to wait for the swap chain to finish reading
     // from the image before we can access it. This can be accomplished by waiting
     // on the color attachment output stage itself.
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
 
     // Now, create the renderpass.
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = 1;
-    renderPassInfo.pAttachments = &colorAttachment;
+    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    renderPassInfo.pAttachments = attachments.data();
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(device_, &renderPassInfo, nullptr, &renderPass_) != VK_SUCCESS) {
+    if (vkCreateRenderPass(device_->getLogicalDevice(), &renderPassInfo, nullptr, &renderPass_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }
 
@@ -174,8 +197,8 @@ void GraphicsPipeline::create() {
     createPipeline();
 
     // Shader modules no longer needed.
-    vkDestroyShaderModule(device_, fragShaderModule_, nullptr);
-    vkDestroyShaderModule(device_, vertShaderModule_, nullptr);
+    vkDestroyShaderModule(device_->getLogicalDevice(), fragShaderModule_, nullptr);
+    vkDestroyShaderModule(device_->getLogicalDevice(), vertShaderModule_, nullptr);
 }
 
 void GraphicsPipeline::createDescriptorSetLayout() {
@@ -200,7 +223,7 @@ void GraphicsPipeline::createDescriptorSetLayout() {
   layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
   layoutInfo.pBindings = bindings.data();
 
-  if (vkCreateDescriptorSetLayout(device_, &layoutInfo, nullptr, &descriptorSetLayout_) != VK_SUCCESS) {
+  if (vkCreateDescriptorSetLayout(device_->getLogicalDevice(), &layoutInfo, nullptr, &descriptorSetLayout_) != VK_SUCCESS) {
     throw std::runtime_error("failed to create descriptor set layout!");
   }
 }
@@ -212,7 +235,7 @@ VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& cod
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
     VkShaderModule shaderModule;
-    if (vkCreateShaderModule(device_, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(device_->getLogicalDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
 
@@ -315,10 +338,14 @@ void GraphicsPipeline::createPipeline() {
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-    // Create depth and stencil here if needed.
-    // VkPipelineDepthStencilStateCreateInfo.
-
-
+    // Create depth and stencil state.
+    VkPipelineDepthStencilStateCreateInfo depthStencil{};
+    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencil.depthTestEnable = VK_TRUE;
+    depthStencil.depthWriteEnable = VK_TRUE;
+    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+    depthStencil.depthBoundsTestEnable = VK_FALSE;
+    depthStencil.stencilTestEnable = VK_FALSE;
     // 2 way of doing Blending:
     // • Mix the old and new value to produce a final color
     // • Combine the old and new value using a bitwise operation
@@ -378,7 +405,7 @@ void GraphicsPipeline::createPipeline() {
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
     //pipelineLayoutInfo.pushConstantRangeCount = 0;
 
-    if (vkCreatePipelineLayout(device_, &pipelineLayoutInfo, nullptr, &pipelineLayout_) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(device_->getLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
     cout << "Created the pipeline layout." << endl;
@@ -395,6 +422,7 @@ void GraphicsPipeline::createPipeline() {
     pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = &depthStencil;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.layout = pipelineLayout_;
 
@@ -424,7 +452,7 @@ void GraphicsPipeline::createPipeline() {
     // the usual object creation functions in Vulkan. It is designed to take multiple
     // VkGraphicsPipelineCreateInfo objects and create multiple VkPipeline ob-
     // jects in a single call.
-    if (vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline_) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(device_->getLogicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline_) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
@@ -451,3 +479,4 @@ std::vector<char> GraphicsPipeline::readFile(const std::string& filename) {
 
     return buffer;
 }
+

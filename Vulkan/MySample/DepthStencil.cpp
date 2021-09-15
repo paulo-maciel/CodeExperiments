@@ -108,7 +108,10 @@ void DepthStencil::transitionImageLayout(VkImage image, VkFormat format, VkImage
   sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
   destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
   } else {
-  throw std::invalid_argument("unsupported layout transition!");
+    throw std::invalid_argument("unsupported layout transition!");
   }
+}
 
+VkImageView DepthStencil::getImageView() const {
+  return depthImageView_;
 }

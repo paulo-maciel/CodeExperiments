@@ -2,7 +2,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include <SwapChain.h>
+class SwapChain;
+class Device;
+class DepthStencil;
 
 #include <vector>
 #include <string>
@@ -13,8 +15,8 @@
 class GraphicsPipeline {
 public:
   static std::vector<char> readFile(const std::string& filename);
-  
-  GraphicsPipeline(VkDevice device, std::shared_ptr<SwapChain> swapChain);
+
+  GraphicsPipeline(std::shared_ptr<Device> device, std::shared_ptr<SwapChain> swapChain, std::shared_ptr<DepthStencil> depthStencil);
   ~GraphicsPipeline();
 
   void create();
@@ -42,8 +44,8 @@ private:
   
   VkPipelineShaderStageCreateInfo *shaderStages_;
 
-  VkDevice device_;
-
+  std::shared_ptr<Device> device_;
+  std::shared_ptr<DepthStencil> depthStencil_;
   // Swapchain for 2D extent and format.
   std::shared_ptr<SwapChain> swapChain_;
 

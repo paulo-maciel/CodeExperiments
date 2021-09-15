@@ -91,26 +91,29 @@ void CommandPool::createCommandBuffers(std::shared_ptr<VertexBuffer> vertexBuffe
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = device_->getSwapChain()->getExtent2D();
 
-    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    clearValues[1].depthStencil = {1.0f, 0};
+
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    renderPassInfo.pClearValues = clearValues.data();
 
     vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    // Bind the pipeline.
-    vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipeline());
+      // Bind the pipeline.
+      vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipeline());
 
-    // Bind vertex and index buffer.
-    VkBuffer vertexBuffers[] = {vertexBuffer->getVkBuffer()};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(commandBuffers_[i], 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffers_[i], vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+      // Bind vertex and index buffer.
+      VkBuffer vertexBuffers[] = {vertexBuffer->getVkBuffer()};
+      VkDeviceSize offsets[] = {0};
+      vkCmdBindVertexBuffers(commandBuffers_[i], 0, 1, vertexBuffers, offsets);
+      vkCmdBindIndexBuffer(commandBuffers_[i], vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
-    // Bind descriptor set with uniform buffer;
-    vkCmdBindDescriptorSets(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipelineLayout(), 0, 1, &descriptorSets[i], 0, nullptr);
+      // Bind descriptor set with uniform buffer;
+      vkCmdBindDescriptorSets(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, device_->getGraphicsPipeline()->getPipelineLayout(), 0, 1, &descriptorSets[i], 0, nullptr);
 
-    // Draw using indices.
-    vkCmdDrawIndexed(commandBuffers_[i], static_cast<uint32_t>(vertexBuffer->getIndices().size()), 1, 0, 0, 0);
+      // Draw using indices.
+      vkCmdDrawIndexed(commandBuffers_[i], static_cast<uint32_t>(vertexBuffer->getIndices().size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffers_[i]);
 

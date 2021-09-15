@@ -52,22 +52,22 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // Note: Only create the swapchain after the logical device has been created.
   swapChain_->create(getPtr(), familyIndexes);
 
-  // Now that we have a logical device and a swap chain,
-  // we can create the graphics pipeline.
-  graphicsPipeline_ = std::make_shared<GraphicsPipeline>(device_, swapChain_);
-  graphicsPipeline_->create();
-
-  // Create the frame buffers.
-  swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass());
-
-  // Create the command pool and the command buffers.
-  commandPool_ = std::make_shared<CommandPool>(getPtr(), swapChain_, graphicsPipeline_);
-  commandPool_->create();
-
   // Create the depth buffer.
   depthStencil_ = std::make_shared<DepthStencil>(getPtr());
   VkExtent2D extent2D = swapChain_->getExtent2D();
   depthStencil_->create(extent2D.width, extent2D.height);
+
+  // Now that we have a logical device and a swap chain,
+  // we can create the graphics pipeline.
+  graphicsPipeline_ = std::make_shared<GraphicsPipeline>(getPtr(), swapChain_, depthStencil_);
+  graphicsPipeline_->create();
+
+  // Create the frame buffers.
+  swapChain_->createFrameBuffers(graphicsPipeline_->getRenderPass(), depthStencil_->getImageView());
+
+  // Create the command pool and the command buffers.
+  commandPool_ = std::make_shared<CommandPool>(getPtr(), swapChain_, graphicsPipeline_);
+  commandPool_->create();
 
   // Create a texture images.
   // TODO: App specific

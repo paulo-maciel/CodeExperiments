@@ -33,7 +33,7 @@ public:
   std::vector<VkImageView> getImagesView() const;
   std::vector<VkFramebuffer> getFrameBuffers() const;
 
-  void createFrameBuffers(VkRenderPass renderPass);
+  void createFrameBuffers(VkRenderPass renderPass, VkImageView depthImageView);
   uint32_t getBufferCount() const;
 
 private:

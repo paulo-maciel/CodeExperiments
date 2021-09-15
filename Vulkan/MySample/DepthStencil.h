@@ -18,9 +18,12 @@ public:
   bool create(uint32_t width, uint32_t height);
   void destroy();
   bool hasStencilComponent(VkFormat format);
+  VkFormat findDepthFormat();
+
+  VkImageView getImageView() const;
 
 private:
-  VkFormat findDepthFormat();
+
   VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
   void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 

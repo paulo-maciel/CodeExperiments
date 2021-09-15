@@ -102,25 +102,27 @@ std::vector<VkFramebuffer> SwapChain::getFrameBuffers() const {
   return frameBuffers_;
 }
 
-void SwapChain::createFrameBuffers(VkRenderPass renderPass) {
+void SwapChain::createFrameBuffers(VkRenderPass renderPass, VkImageView depthImageView) {
     frameBuffers_.resize(imagesView_.size());
 
     for (size_t i = 0; i < imagesView_.size(); i++) {
-        VkImageView attachments[] = {
-            imagesView_[i]
-        };
+      std::array<VkImageView, 2> attachments = {
+        imagesView_[i],
+        depthImageView
+      };
 
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = extent2D_.width;
-        framebufferInfo.height = extent2D_.height;
-        framebufferInfo.layers = 1;
+      VkFramebufferCreateInfo framebufferInfo{};
+      framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+      framebufferInfo.renderPass = renderPass;
+      framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+      framebufferInfo.pAttachments = attachments.data();
+      framebufferInfo.width = extent2D_.width;
+      framebufferInfo.height = extent2D_.height;
+      framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(device_, &framebufferInfo, nullptr, &frameBuffers_[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
+      if (vkCreateFramebuffer(device_, &framebufferInfo, nullptr, &frameBuffers_[i]) != VK_SUCCESS)
+      {
+        throw std::runtime_error("failed to create framebuffer!");
         }
     }
 }
