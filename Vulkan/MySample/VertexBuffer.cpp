@@ -21,7 +21,7 @@ std::array<VkVertexInputAttributeDescription, 3> VertexBuffer::Vertex::getAttrib
 
   attributeDescriptions[0].binding = 0;
   attributeDescriptions[0].location = 0;
-  attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+  attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT; 
   attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
   attributeDescriptions[1].binding = 0;
@@ -88,19 +88,6 @@ void VertexBuffer::destroy() {
 
   vkDestroyBuffer(device_->getLogicalDevice(), indexBuffer_, nullptr);
   vkFreeMemory(device_->getLogicalDevice(), indexBufferMemory_, nullptr);
-}
-
-uint32_t VertexBuffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-  VkPhysicalDeviceMemoryProperties memProperties;
-  vkGetPhysicalDeviceMemoryProperties(device_->getPhysicalDevice(), &memProperties);
-
-  for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-    if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-      return i;
-    }
-  }
-
-  throw std::runtime_error("failed to find suitable memory type!");
 }
 
 VkBuffer VertexBuffer::getVkBuffer() const {

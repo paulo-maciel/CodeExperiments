@@ -12,8 +12,8 @@ LDFLAGS += -lpthread -lm
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 OBJS = MySample.o VulkanApp.o Device.o QueueSelector.o SwapChain.o GraphicsPipeline.o \
-       CommandPool.o SyncObjects.o VertexBuffer.o Buffer.o UniformBuffer.o DescriptorPool.o TextureImage.o \
-			 TextureImageSampler.o
+       CommandPool.o SyncObjects.o VertexBuffer.o Buffer.o UniformBuffer.o DescriptorPool.o \
+			 Image.o TextureImage.o TextureImageSampler.o DepthStencil.o \
 
 myvulkan: $(OBJS)
 	$(CXX) $(CXXFLAGS) -o myvulkan $(OBJS) $(LDFLAGS)

@@ -22,7 +22,7 @@ public:
   // TODO: App defined.
   struct Vertex
   {
-    glm::vec2 pos;
+    glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
 
@@ -44,9 +44,6 @@ public:
 
   VkBuffer getIndexBuffer() const;
   std::vector<uint16_t> getIndices() const;
-
-private:
-  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 private:
   const std::vector<Vertex> vertices_;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Buffer.h>
+#include <Image.h>
 
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
@@ -10,7 +11,7 @@
 class Device;
 
 
-class TextureImage : public Buffer {
+class TextureImage : public Buffer, public Image {
 public:
 
   TextureImage(std::shared_ptr<Device> device, std::shared_ptr<CommandPool> commandPool, std::shared_ptr<QueueSelector> queueSelector);
@@ -25,11 +26,7 @@ public:
   VkImageView getTextureImageView() const;
 
 private:
-  void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                   VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
-
   void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
                   
 private: 
