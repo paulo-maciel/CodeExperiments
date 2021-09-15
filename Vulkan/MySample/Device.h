@@ -12,6 +12,7 @@ class VertexBuffer;
 class UniformBuffer;
 class TextureImage;
 class TextureImageSampler;
+class DepthStencil;
 
 #include <iostream>
 #include <vector>
@@ -74,6 +75,7 @@ private:
   std::shared_ptr<UniformBuffer> uniformBuffer_;
   std::shared_ptr<TextureImage> textureImage_;
   std::shared_ptr<TextureImageSampler> textureImageSampler_;
+  std::shared_ptr<DepthStencil> depthStencil_;
 
   const std::vector<const char*> requiredExtensions_;
 };

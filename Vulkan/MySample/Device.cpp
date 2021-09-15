@@ -10,6 +10,7 @@
 #include <UniformBuffer.h>
 #include <TextureImage.h>
 #include <TextureImageSampler.h>
+#include <DepthStencil.h>
 
 #include <map>
 #include <set>
@@ -62,6 +63,11 @@ void Device::create(const std::vector<const char*>& validationLayers) {
   // Create the command pool and the command buffers.
   commandPool_ = std::make_shared<CommandPool>(getPtr(), swapChain_, graphicsPipeline_);
   commandPool_->create();
+
+  // Create the depth buffer.
+  depthStencil_ = std::make_shared<DepthStencil>(getPtr());
+  VkExtent2D extent2D = swapChain_->getExtent2D();
+  depthStencil_->create(extent2D.width, extent2D.height);
 
   // Create a texture images.
   // TODO: App specific
@@ -278,6 +284,10 @@ std::shared_ptr<UniformBuffer> Device::getUniformBuffer() const {
 }
 
 void Device::destroy() {
+
+  cout << "Destroying depth stencil." << endl;
+  depthStencil_->destroy();
+
   cout << "Destroying texture image sampler." << endl;
   textureImageSampler_->destroy();
 
