@@ -39,12 +39,17 @@ Device::~Device() {
 
 void Device::create(const std::vector<const char*>& validationLayers) {
   queueSelector_ = std::make_shared<QueueSelector>(vkSurface_, getPtr());
+
+  // Instantiate the swapchain here since selectPhysical device needs to query.
+  // the swapchain details of each candidate device for suitability.
   swapChain_ = std::make_shared<SwapChain>(vkSurface_);
 
   selectPhysical();
   createLogical(validationLayers);
   auto familyIndexes = queueSelector_->findFamilies(physicalDevice_);
-  swapChain_->create(this, familyIndexes);
+
+  // Note: Only create the swapchain after the logical device has been created.
+  swapChain_->create(getPtr(), familyIndexes);
 
   // Now that we have a logical device and a swap chain,
   // we can create the graphics pipeline.
@@ -207,7 +212,7 @@ int Device::rateDevice(const VkPhysicalDevice& physicalDevice) {
     }
 
     // Query the swap chain.  Require that at least one format and one present mode is present.
-    SwapChain::Details swapChainDetails = swapChain_->getDetails(physicalDevice);
+    SwapChain::Details swapChainDetails = swapChain_->getDeviceDetails(physicalDevice);
     if (swapChainDetails.formats.empty() || swapChainDetails.presentModes.empty()) {
         cout << "Device does not support at least one swapchain format or present mode." << endl;
         score = -1;

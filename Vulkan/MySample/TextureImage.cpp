@@ -52,7 +52,7 @@ bool TextureImage::create(const std::string& filename, VkFormat imageViewFormat)
   vkFreeMemory(device_->getLogicalDevice(), stagingBufferMemory, nullptr);
 
   // Create an image view.
-  createImageView(imageViewFormat);
+  textureImageView_ = Image::createView(device_, textureImage_, imageViewFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void TextureImage::destroy() {
@@ -132,25 +132,6 @@ void TextureImage::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t wi
 
 VkImage TextureImage::getTextureImage() const {
   return textureImage_;
-}
-
-
-// TODO: Reuse this in swap chain to create image views there as well.
-void TextureImage::createImageView(VkFormat format) {
-  VkImageViewCreateInfo viewInfo{};
-  viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-  viewInfo.image = textureImage_;
-  viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-  viewInfo.format = format;
-  viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  viewInfo.subresourceRange.baseMipLevel = 0;
-  viewInfo.subresourceRange.levelCount = 1;
-  viewInfo.subresourceRange.baseArrayLayer = 0;
-  viewInfo.subresourceRange.layerCount = 1;
-
-  if (vkCreateImageView(device_->getLogicalDevice(), &viewInfo, nullptr, &textureImageView_) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create texture image view!");
-  }
 }
 
 VkImageView TextureImage::getTextureImageView() const {

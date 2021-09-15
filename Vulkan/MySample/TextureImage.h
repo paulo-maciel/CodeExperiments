@@ -20,8 +20,6 @@ public:
   bool create(const std::string &filename, VkFormat imageViewFormat);
   void destroy();
 
-  void createImageView(VkFormat imageViewFormat);
-
   VkImage getTextureImage() const;
   VkImageView getTextureImageView() const;
 

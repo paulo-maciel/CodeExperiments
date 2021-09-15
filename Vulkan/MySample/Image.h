@@ -18,4 +18,5 @@ public:
               VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
               VkImage &image, VkDeviceMemory &imageMemory);
 
+  VkImageView createView(std::shared_ptr<Device> device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 };

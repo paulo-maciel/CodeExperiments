@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 
 #include <QueueSelector.h>
-
+#include <Image.h>
 
 #include <vector>
 
@@ -11,7 +11,7 @@
 
 class Device;
 
-class SwapChain {
+class SwapChain : public Image {
 public:
   SwapChain(VkSurfaceKHR surface);
   ~SwapChain();
@@ -22,10 +22,10 @@ public:
     std::vector<VkPresentModeKHR> presentModes;
   };
 
-  bool create(Device *device, QueueSelector::QueueFamilyIndices familyIndexes);
+  bool create(std::shared_ptr<Device> device, QueueSelector::QueueFamilyIndices familyIndexes);
   void destroy();
 
-  Details getDetails(VkPhysicalDevice device) const;
+  Details getDeviceDetails(VkPhysicalDevice device) const;
   VkExtent2D getExtent2D() const;
   VkSurfaceFormatKHR getFormat() const;
   VkSwapchainKHR getSwapChain() const;
