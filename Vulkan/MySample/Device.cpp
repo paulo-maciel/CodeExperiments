@@ -226,7 +226,7 @@ int Device::rateDevice(const VkPhysicalDevice& physicalDevice) {
         score += 10000;
     }
 
-    if (requestedDeviceFeatures_.samplerAnisotropy = VK_TRUE && deviceFeatures.samplerAnisotropy) {
+    if (requestedDeviceFeatures_.samplerAnisotropy == VK_TRUE && deviceFeatures.samplerAnisotropy) {
       score += 1000;
       deviceFeatures_.samplerAnisotropy = requestedDeviceFeatures_.samplerAnisotropy;
       cout << "Device supports anisotropic filtering." << endl;

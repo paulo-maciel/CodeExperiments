@@ -53,6 +53,8 @@ bool TextureImage::create(const std::string& filename, VkFormat imageViewFormat)
 
   // Create an image view.
   textureImageView_ = Image::createView(device_, textureImage_, imageViewFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+
+  return true;
 }
 
 void TextureImage::destroy() {

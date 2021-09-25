@@ -25,6 +25,7 @@ bool DepthStencil::create(uint32_t width, uint32_t height) {
   transitionImageLayout(depthImage_, depthFormat,
                         VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+  return true;
 }
 
 void DepthStencil::destroy() {

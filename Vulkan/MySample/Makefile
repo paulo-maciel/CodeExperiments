@@ -1,9 +1,9 @@
 
 VULKAN_SDK_PATH = $(VULKAN_SDK)
 
-CXX = g++
-#CXX = clang
-CXXFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I/usr/local/include -I.  -g -O0 -ggdb
+#CXX = g++
+CXX = clang++
+CXXFLAGS = -std=c++20 -I$(VULKAN_SDK_PATH)/include -I/usr/local/include -I.  -g -O0 -ggdb
 
 LDFLAGS = -L/usr/local/lib -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 LDFLAGS += -lpthread -lm

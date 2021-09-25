@@ -35,6 +35,8 @@ bool TextureImageSampler::create() {
   if (vkCreateSampler(device_->getLogicalDevice(), &samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
     throw std::runtime_error("failed to create texture sampler!");
   }
+
+  return true;
 }
 
 void TextureImageSampler::destroy() {

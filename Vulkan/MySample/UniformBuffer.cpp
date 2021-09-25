@@ -35,6 +35,8 @@ bool UniformBuffer::create() {
   for (size_t i = 0; i < swapChain_->getBufferCount(); i++) {
     Buffer::create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers_[i], uniformBuffersMemory_[i]);
   }
+
+  return true;
 }
 
 void UniformBuffer::destroy() {

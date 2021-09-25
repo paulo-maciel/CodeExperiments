@@ -49,11 +49,12 @@ bool SyncObjects::create() {
 }
 
 bool SyncObjects::destroy() {
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(device_->getLogicalDevice(), doneRenderingSemaphores_[i], nullptr);
-        vkDestroySemaphore(device_->getLogicalDevice(), imageAcquiredSemaphores_[i], nullptr);
-        vkDestroyFence(device_->getLogicalDevice(), inFlightFences_[i], nullptr);
-    }
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+      vkDestroySemaphore(device_->getLogicalDevice(), doneRenderingSemaphores_[i], nullptr);
+      vkDestroySemaphore(device_->getLogicalDevice(), imageAcquiredSemaphores_[i], nullptr);
+      vkDestroyFence(device_->getLogicalDevice(), inFlightFences_[i], nullptr);
+  }
+  return true;
 }
 
 std::vector<VkSemaphore> &SyncObjects::getImageAvailableSemaphores() {

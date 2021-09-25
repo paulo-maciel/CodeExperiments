@@ -46,6 +46,8 @@ bool Image::create(std::shared_ptr<Device> device, uint32_t width, uint32_t heig
   }
 
   vkBindImageMemory(device->getLogicalDevice(), image, imageMemory, 0);
+
+  return true;
 }
 
 VkImageView Image::createView(std::shared_ptr<Device> device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
