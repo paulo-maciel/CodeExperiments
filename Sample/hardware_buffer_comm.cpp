@@ -217,10 +217,10 @@ int HardwareBufferComm::recvHandle(AHardwareBuffer *buffer) {
   }
 
   int ret = AHardwareBuffer_recvHandleFromUnixSocket(data_socket_, &buffer);
-  if (ret == EOT) {
+  if (ret == EOT || ret == 0) {
     return -1;
   }
-  if (ret <= 0) {
+  if (ret < 0) {
     cout << "HardwareBufferComm::recvHandle: Call to AHardwareBuffer_recvHandleFromUnixSocket failed." << endl;
     return -1;
   }
