@@ -1,0 +1,3 @@
+/home/MAGICLEAP/pmaciel/CodeExperiments/Sample/build/CMakeFiles/sample.dir
+/home/MAGICLEAP/pmaciel/CodeExperiments/Sample/build/CMakeFiles/edit_cache.dir
+/home/MAGICLEAP/pmaciel/CodeExperiments/Sample/build/CMakeFiles/rebuild_cache.dir

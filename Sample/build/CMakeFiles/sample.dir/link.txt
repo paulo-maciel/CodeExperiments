@@ -1,0 +1,1 @@
+/usr/bin/g++ -std=c++14 -rdynamic CMakeFiles/sample.dir/sample.cpp.o CMakeFiles/sample.dir/hardware_buffer_comm.cpp.o -o sample 
