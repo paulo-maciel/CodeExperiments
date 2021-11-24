@@ -10,7 +10,8 @@ set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 #add_compile_options("-g;-O0")
-add_executable(sample sample.cpp hardware_buffer_comm.cpp)
+add_executable(sample sample.cpp TcpClient.cpp TcpServer.cpp)
+target_link_libraries( sample pthread )
 
 #include_directories(~/ml2/nova/external/glm/)
 
