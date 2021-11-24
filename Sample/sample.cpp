@@ -43,15 +43,14 @@ int main(int n, char** argv) {
 
     // Wait for the client to connect otherwise this app just exits and
     // the server connection thread is stopped.
-    cout << "Will wait now for client to connect ..." << endl;
+    cout << "Server will wait now for client to connect ..." << endl;
     bool status = pServer->waitForConnection(std::chrono::milliseconds(10000));
-    cout << "Server is connected to client.  Send some messages." << endl;
+    cout << "Server is connected to client.  Receive a message." << endl;
 
-    string token, toSend = "This is a message to send to server";
-    stringstream ss(toSend);
-    while (getline(ss, token,' ')) {
-      pServer->sendData((char *)token.data(), token.size());
-    }
+    char buffer[256];
+    memset(buffer, '\0', 256);
+    pServer->recvData(buffer, sizeof(buffer));
+    cout << "Received: " << buffer << endl;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(20000));
     cout << "Server app will exit now" << endl;
@@ -60,10 +59,15 @@ int main(int n, char** argv) {
     cout << "Setting up the client..." << endl;
     std::unique_ptr<ITcpClient> pClient = ITcpClient::Create();
 
-    char buffer[256];
-    cout << "Client to receive data" << endl;
-    pClient->recvData(buffer, 1);
-    cout << "Client to exit now" << endl;
+    cout << "Client will wait now for server to accept the connection request." << endl;
+    bool status = pClient->waitForConnection(std::chrono::milliseconds(10000));
+    cout << "Client is connected to server.  Send some messages." << endl;
+
+    string token, toSend = "This is a message to send to server";
+    stringstream ss(toSend);
+    while (getline(ss, token,' ')) {
+      pClient->sendData((char *)token.data(), token.size());
+    }
   }
 
 }

@@ -44,8 +44,8 @@ public:
     return false;
   }
 
-  void recvData(void* data, size_t nbytes) {
-    myread(data, nbytes);
+  size_t recvData(void* data, size_t nbytes) {
+    return myread(data, nbytes);
   }
 
   void sendData(void* data, size_t nbytes) {
@@ -56,12 +56,10 @@ public:
   void monitor_connection(T* handler) {
     vector<char> buffer(256, '\0');
     while(!quit_ && !disconnect_) {
-      if (myread(buffer.data(), sizeof(buffer)) != sizeof(buffer)) {
-        break;
-      }
-      cout << "monitor_connection: read: " << buffer.data() << endl;      
+      // if (myread(buffer.data(), sizeof(buffer)) != sizeof(buffer)) {
+      //   break;
+      // }   
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      cout << "Connected_worker wake..." << endl;
       (void)handler;
       //handler->onMsg(msg);
     }
@@ -78,11 +76,12 @@ public:
       if (n > 0) {
         p += n;
         remain -= size_t(n);
-        cout << "sent: " << n << "/" << remain << "bytes remanining/total: " << (nbytes - remain) << "/" <<  nbytes << endl;
+        cout << "sent: " << n << "/" << nbytes << " bytes. Remaining to send: " << remain << " bytes." << endl;
         continue;
       }
       if (n == 0) {
-        cout << "total sent: " << (nbytes - remain) << "/" << nbytes << " Failed: other side closed connection\n" << endl;
+        cout << "Remote side closed connection.  Disconnecting." << endl;
+        cout << "total sent: " << (nbytes - remain) << " Remaining not sent: " << remain << endl;
         connected_ = false;
         return 0;
       }
@@ -108,17 +107,18 @@ public:
       if (n > 0) {
         p += n;
         remain -= size_t(n);
-        cout << "recvd: " << n << "/" << remain << "bytes remanining/total: " << (nbytes - remain) << "/" <<  nbytes << endl;
+        cout << "recvd: " << n << "/" << nbytes << " bytes remanining: " <<  remain << endl;
         continue;
       }
       ssize_t rc = 0;
       if (n == 0) {
-        cout << "total recvd: " << (nbytes - remain) << "/" << nbytes << " Failed: other side closed connection\n" << endl;
+        cout << "recvd: remote connection closed.  Left to read: " << remain << endl;
         connected_ = false;
+        return 0;
       } else if (pollOnError(EAGAIN, data_socket_, POLLIN)) {
         continue;
       } else if (!quit_) {
-        cout << "recvd: " << remain << " bytes.  Failed: " << errno << " " << strerror(errno) << endl;
+        cout << "recvd: failed: " << strerror(errno) << " Left to read: " << remain << endl;
         rc = -1;
       }
       return rc;

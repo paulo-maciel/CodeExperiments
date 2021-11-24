@@ -8,6 +8,9 @@
 class ITcp {
 public:
   virtual bool isConnected() = 0;
+  virtual void sendData(void* data, size_t nbytes) = 0;
+  virtual size_t recvData(void* data, size_t nbytes) = 0;
+
   bool waitForConnection(std::chrono::milliseconds waitTime) {
     std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
     while(!this->isConnected()) {
@@ -26,11 +29,9 @@ public:
 class ITcpClient : public ITcp {
   public:
     static std::unique_ptr<ITcpClient> Create();
-    virtual void recvData(void* data, size_t nbytes) = 0;
 };
 
 class ITcpServer : public ITcp {
   public:
     static std::unique_ptr<ITcpServer> Create();
-    virtual void sendData(void* data, size_t nbytes) = 0;
 };

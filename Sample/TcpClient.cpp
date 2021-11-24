@@ -20,8 +20,12 @@ public:
     quit_ = true;
   };
 
-  void recvData(void* data, size_t nbytes) {
-    TcpEndpoint::recvData(data, nbytes);
+  void sendData(void* data, size_t nbytes) {
+    TcpEndpoint::sendData(data, nbytes);
+  }
+
+  size_t recvData(void* data, size_t nbytes) {
+    return TcpEndpoint::recvData(data, nbytes);
   };
 
   bool isConnected() { return connected_; }
@@ -59,10 +63,11 @@ public:
           // indicating that writing is now possible
           connected_ = true;
       } else {
-        cout << "Connection to server failed: " << strerror(errno) << endl;
+        cout << "Client: " << strerror(errno) << endl;
       }
 
       if (connected_) {
+        cout << "Client connected." << endl;
         // Check for disconnection requests.
         monitor_connection(this);
         connected_ = false;

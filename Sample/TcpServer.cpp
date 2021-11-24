@@ -19,6 +19,10 @@ public:
     TcpEndpoint::sendData(data, nbytes);
   }
 
+  size_t recvData(void* data, size_t nbytes) {
+    return TcpEndpoint::recvData(data, nbytes);
+  };
+
   bool isConnected() { return connected_; }
 
   void handleConnections() {
