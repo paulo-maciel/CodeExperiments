@@ -5,8 +5,8 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 project(sample)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "-std=c++2a")
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 #add_compile_options("-g;-O0")
