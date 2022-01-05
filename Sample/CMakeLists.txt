@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS "-std=c++2a")
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 #add_compile_options("-g;-O0")
-add_executable(sample sample.cpp)
+add_executable(sample sample.cpp) # module.cpp)
 target_link_libraries( sample pthread )
 
 #include_directories(~/ml2/nova/external/glm/)
