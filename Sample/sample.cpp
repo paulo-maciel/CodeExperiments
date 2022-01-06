@@ -93,19 +93,30 @@ void subSets(set<string>& masterSet) {
   listSubset(masterSet, chosen);
 }
 
-
+void RecPermute(string rest, string used) {
+  if (rest.empty()) {
+    cout << used << endl;
+  } else {
+  for (int i = 0; i < rest.length(); i++) {
+    string remaining = rest.substr(0, i) + rest.substr(i+1);
+    RecPermute(remaining, used + rest[i]);
+  }
+ }
+}
 
 int main() {
 
   //hello();
 
-  vector<string> stringVec = { "Bob", "Jane", "Dylan", "Fonda"};
-  cout << "Permutations: " << endl;
-  permute(stringVec);
+  // vector<string> stringVec = { "Bob", "Jane", "Dylan", "Fonda"};
+  // cout << "Permutations: " << endl;
+  // permute(stringVec);
 
-  cout << "Subsets: " << endl;
-  set<string> stringSet(begin(stringVec), end(stringVec));
-  subSets(stringSet);
+  // cout << "Subsets: " << endl;
+  // set<string> stringSet(begin(stringVec), end(stringVec));
+  // subSets(stringSet);
+
+  RecPermute("abcd", "");
 
   return 0;
 }

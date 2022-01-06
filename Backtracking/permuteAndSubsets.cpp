@@ -1,4 +1,4 @@
-
+// Permute strings
 void permuteHelper(vector<string>& stringSet, vector<string>& chosen) {
   if (stringSet.empty()) {
     auto pr = [](string str) { cout << str << " "; };
@@ -78,4 +78,24 @@ void listSubset(set<string>& masterSet, set<string>& used) {
 void subSets(set<string>& masterSet) {
   set<string> chosen;
   listSubset(masterSet, chosen);
+}
+
+// Permute characters.
+// Call RecPermute("abcd", "");
+void RecPermute(string rest, string used) {
+  if (rest.empty()) {
+    cout << used << endl;
+  } else {
+  for (int i = 0; i < rest.length(); i++) {
+    // At each iteration, select a character to add.
+    // That is, at each iteration we have:
+    // prefix ch1
+    // prefix ch2
+    // ...
+    // prefix chn
+    // Then, the same applies to 'prefix'
+    string remaining = rest.substr(0, i) + rest.substr(i+1);
+    RecPermute(remaining, used + rest[i]);
+  }
+ }
 }
