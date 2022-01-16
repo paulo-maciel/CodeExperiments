@@ -1,5 +1,5 @@
 //Range Sum Query 2D - Immutable
-// Not very efficient though in computing NumMatrix.  Needs to improve.gs
+// Not very efficient though in computing NumMatrix.  Needs to improve.
 class NumMatrix {
 public:
     NumMatrix(vector<vector<int>>& matrix) {
