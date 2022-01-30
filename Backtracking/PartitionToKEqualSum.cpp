@@ -84,6 +84,7 @@ public:
                 taken[i] = true;
                 state.push_back(nums[i]);
                 if (backtrack(nums, i, totSets, currSet, currSum + nums[i], targetSum)) {
+                    // This means that we found a set and want to keep what was taken!, so don't pop.
                     return true;
                 }
                 if (!state.empty()) {
