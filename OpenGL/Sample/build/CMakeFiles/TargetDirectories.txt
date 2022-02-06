@@ -1,3 +1,0 @@
-/home/MAGICLEAP/pmaciel/CodeExperiments/OpenGL/Sample/build/CMakeFiles/sample.dir
-/home/MAGICLEAP/pmaciel/CodeExperiments/OpenGL/Sample/build/CMakeFiles/edit_cache.dir
-/home/MAGICLEAP/pmaciel/CodeExperiments/OpenGL/Sample/build/CMakeFiles/rebuild_cache.dir
