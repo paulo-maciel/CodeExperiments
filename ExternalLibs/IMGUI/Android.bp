@@ -1,0 +1,25 @@
+cc_library_static {
+    name: "libml_imgui",
+    export_include_dirs: ["."],
+    local_include_dirs: ["."],
+    compile_multilib: "64",
+    srcs: [
+        "imgui.cpp",
+        "imgui_draw.cpp",
+        "imgui_tables.cpp",
+        "imgui_widgets.cpp",
+        "backends/imgui_impl_ml_gl.cpp",
+        ],
+
+    defaults: [
+        "ml_gfx_defaults",
+    ],
+    
+    shared_libs: [
+                "libandroid",
+                "libbase",
+                "liblog",
+                "libml_common",
+                "libml_graphics",
+            ]
+}
