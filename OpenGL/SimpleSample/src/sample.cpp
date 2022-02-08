@@ -32,6 +32,7 @@
 
 #include "json.hpp"
 
+#include <sampleLibFile.h>
 
 struct Material {
     glm::vec3 m_baseColor = glm::vec3(1.0f);
@@ -1051,6 +1052,9 @@ void UpdateEventsForAppMode(RenderContext* renderContext, SDL_Event& event) {
 }
 
 int main(int argc, char* argv[]) {
+  ThirdEye thirdEye;
+  thirdEye.uninit();
+
     // Init SDL.
     SDL_Init(SDL_INIT_VIDEO);
 

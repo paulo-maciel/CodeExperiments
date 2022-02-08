@@ -1,4 +1,24 @@
 cmake_minimum_required(VERSION 3.17.1)
+
+# My ancilary library
+project(sampleLib VERSION 1.0.1 DESCRIPTION "Just a sample lib")
+
+add_library(sampleLib SHARED ${CMAKE_CURRENT_SOURCE_DIR}/../lib/src/sampleLibFile.cpp)
+
+set_target_properties(sampleLib
+    PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS NO
+)
+
+set_target_properties(sampleLib PROPERTIES VERSION ${PROJECT_VERSION})
+set_target_properties(sampleLib PROPERTIES SOVERSION 1)
+set_target_properties(sampleLib PROPERTIES PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/sampleLibFile.h)
+target_include_directories(sampleLib PUBLIC include)
+include(GNUInstallDirs)
+
+# Main sample project
 project(CodeExperiments)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -25,7 +45,6 @@ file(GLOB_RECURSE
      ${PROJECT_SOURCE_DIR}/Content/Shaders/*.gs
      ${PROJECT_SOURCE_DIR}/Content/Shaders/*.fs
      ${PROJECT_SOURCE_DIR}/Content/Shaders/*.cs
-     ${PROJECT_SOURCE_DIR}/lib/src/sampleLibFile.cpp
      ${PROJECT_SOURCE_DIR}/../../ExternalLibs/Glew/src/glew.c
      ${PROJECT_SOURCE_DIR}/../../ExternalLibs/IMGUI/imgui.cpp
      ${PROJECT_SOURCE_DIR}/../../ExternalLibs/IMGUI/imgui_draw.cpp
@@ -54,11 +73,12 @@ target_include_directories(CodeExperiments
                            PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/IMGUI/backends
                            PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/JSON
                            PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/PortableFileDialogs
-                           PRIVATE ${PROJECT_SOURCE_DIR}/../CodeExperimentsLib/Source)
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../lib/include)
 
 target_link_libraries(CodeExperiments
                       ${OPENGL_LIBRARIES}
                       ${CMAKE_DL_LIBS}
+                      sampleLib
                       SDL2::Main)
 
 source_group("CMake" CMakeLists.txt)
