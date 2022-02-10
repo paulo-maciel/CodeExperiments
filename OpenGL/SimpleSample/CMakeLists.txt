@@ -1,9 +1,16 @@
 cmake_minimum_required(VERSION 3.17.1)
 
-# My ancilary library
+#####################################  My ancilary library
 project(sampleLib VERSION 1.0.1 DESCRIPTION "Just a sample lib")
 
 add_library(sampleLib SHARED ${CMAKE_CURRENT_SOURCE_DIR}/../lib/src/sampleLibFile.cpp)
+
+if (WIN32)
+     set(SDL2_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../ExternalLibs/SDL2)
+endif()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../CodeExperimentsCMakeModules)
+find_package(OpenGL REQUIRED)
+find_package(SDL2 REQUIRED)
 
 set_target_properties(sampleLib
     PROPERTIES
@@ -15,10 +22,24 @@ set_target_properties(sampleLib
 set_target_properties(sampleLib PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(sampleLib PROPERTIES SOVERSION 1)
 set_target_properties(sampleLib PROPERTIES PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/sampleLibFile.h)
-target_include_directories(sampleLib PUBLIC include)
+target_include_directories(sampleLib PUBLIC include
+                           ${OPENGL_INCLUDE_DIRS}
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/Glew/include
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/GLM
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/STB
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/TinyOBJ
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/IMGUI
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/IMGUI/backends
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/JSON
+                           PRIVATE ${PROJECT_SOURCE_DIR}/../../ExternalLibs/PortableFileDialogs)
+
+target_link_libraries(sampleLib
+                      ${OPENGL_LIBRARIES}
+                      ${CMAKE_DL_LIBS}
+                      SDL2::Main)
 include(GNUInstallDirs)
 
-# Main sample project
+#####################################  Main sample project
 project(CodeExperiments)
 
 set(CMAKE_CXX_STANDARD 17)

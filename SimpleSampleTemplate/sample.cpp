@@ -29,6 +29,10 @@ using namespace std;
 
 int main() {
 
+  uint64_t diff = 4050739737;
+
+  printf("Printing uint64 %.2f\n", diff/1'000'000.0f);
+
   cout << "Hello World" << endl;
 
   return 0;
